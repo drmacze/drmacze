@@ -54,7 +54,7 @@ Sebagai lulusan **S.Kom**, saya menggabungkan teori akademis yang kuat dengan pr
 ### 📈 Contribution Graph
 
 <div align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=USERNAME_GITHUB_KAMU&bg_color=1a1b27&color=79ff97&line=36BCF7&point=FFFFFF&hide_border=true" width="100%"/>
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=drmacze&bg_color=1a1b27&color=79ff97&line=36BCF7&point=FFFFFF&hide_border=true" width="100%"/>
 </div>
 
 ---
