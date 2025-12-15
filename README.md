@@ -10,7 +10,7 @@
 
 ### 👨‍💻 About Me
 
-Saya adalah lulusan **Sarjana Komputer (S.Kom)** yang berfokus pada pengembangan perangkat lunak yang efisien dan *scalable*. Saya memiliki ketertarikan mendalam pada [Sebutkan Bidang, misal: Backend Development & Cloud Architecture].
+Saya adalah pelajar** yang berfokus pada pengembangan perangkat lunak yang efisien dan *scalable*. Saya memiliki ketertarikan mendalam pada [Sebutkan Bidang, misal: Backend Development & Cloud Architecture].
 
 - 🔭 Saat ini saya sedang bekerja pada **[Nama Proyek/Perusahaan]**
 - 🌱 Saya sedang mendalami **[Teknologi Baru yang dipelajari]**
