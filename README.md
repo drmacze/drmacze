@@ -30,7 +30,7 @@
 
 ### 👨‍💻 Professional Summary
 
-Sebagai lulusan **S.Kom**, saya menggabungkan teori akademis yang kuat dengan praktik industri modern. Fokus utama saya adalah:
+Sebagai **Pelajar**, saya Musthafa darma. menggabungkan teori akademis yang kuat dengan praktik industri modern. Fokus utama saya adalah:
 
 * 🏛️ **System Architecture:** Merancang sistem yang *robust* dan *maintainable*.
 * ⚡ **Performance Optimization:** Memastikan aplikasi berjalan cepat dan efisien.
