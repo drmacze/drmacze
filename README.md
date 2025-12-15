@@ -1,6 +1,6 @@
 <div align="center">
   <img src="https://media.giphy.com/media/qgQUggAC3PfvYknLQi/giphy.gif" width="100%" height="150"/>
-  <h1>Hi there, I'm <a href="#" target="_blank">[Nama Kamu], S.Kom</a> 👋</h1>
+  <h1>Hi there, I'm <a href="#" target="_blank">Musthafa darma.p</a> 👋</h1>
   <p>
     <strong>Software Engineer | Tech Enthusiast | Problem Solver</strong>
   </p>
