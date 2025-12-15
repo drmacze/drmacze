@@ -12,18 +12,18 @@
 
 <div align="center">
   <a href="https://github.com/anuraghazra/github-readme-stats">
-    <img height="180em" src="https://github-readme-stats.vercel.app/api?username=USERNAME_GITHUB_KAMU&show_icons=true&theme=tokyonight&hide_border=true&count_private=true&include_all_commits=true" />
+    <img height="180em" src="https://github-readme-stats.vercel.app/api?username=drmacze&show_icons=true&theme=tokyonight&hide_border=true&count_private=true&include_all_commits=true" />
   </a>
   
   <a href="https://github.com/anuraghazra/github-readme-stats">
-    <img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=USERNAME_GITHUB_KAMU&layout=compact&theme=tokyonight&hide_border=true&langs_count=8" />
+    <img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=drmacze&layout=compact&theme=tokyonight&hide_border=true&langs_count=8" />
   </a>
 </div>
 
 <br/>
 
 <div align="center">
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=USERNAME_GITHUB_KAMU&theme=tokyonight&hide_border=true" alt="GitHub Streak" />
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=drmacze&theme=tokyonight&hide_border=true" alt="GitHub Streak" />
 </div>
 
 ---
