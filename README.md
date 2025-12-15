@@ -1,67 +1,71 @@
 <div align="center">
-  <img src="https://media.giphy.com/media/qgQUggAC3PfvYknLQi/giphy.gif" width="100%" height="150"/>
-  <h1>Hi there, I'm <a href="#" target="_blank">Musthafa darma.p</a> 👋</h1>
-  <p>
-    <strong>Software Engineer | Tech Enthusiast | Problem Solver</strong>
-  </p>
-</div>
-
----
-
-### 👨‍💻 About Me
-
-Saya adalah pelajar** yang berfokus pada pengembangan perangkat lunak yang efisien dan *scalable*. Saya memiliki ketertarikan mendalam pada [Sebutkan Bidang, misal: Backend Development & Cloud Architecture].
-
-- 🔭 Saat ini saya sedang bekerja pada **[Nama Proyek/Perusahaan]**
-- 🌱 Saya sedang mendalami **[Teknologi Baru yang dipelajari]**
-- 💬 Tanyakan saya tentang **[Bahasa Pemrograman Utama]**, **System Design**, dan **Database**
-- 📫 Hubungi saya di: **[Email Kamu]**
-
----
-
-### 🛠️ Tech Stack & Tools
-
-Berikut adalah teknologi yang biasa saya gunakan dalam membangun solusi IT:
-
-<div align="left">
-  <img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
-  <img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white" />
-  
-  <br />
-  
-  <img src="https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot" />
-  <img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" />
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
-  
-  <br />
-  
-  <img src="https://img.shields.io/badge/MySQL-00000f?style=for-the-badge&logo=mysql&logoColor=white" />
-  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
-  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
-</div>
-
----
-
-### 📊 GitHub Analytics
-
-<div align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=USERNAME_GITHUB_KAMU&show_icons=true&theme=radical&hide_border=true" alt="GitHub Stats" />
-  <br/>
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=USERNAME_GITHUB_KAMU&layout=compact&theme=radical&hide_border=true" alt="Top Languages" />
-</div>
-
----
-
-### 🤝 Connect with Me
-
-<div align="center">
-  <a href="https://linkedin.com/in/[USERNAME_LINKEDIN]" target="blank">
-    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+  <a href="https://git.io/typing-svg">
+    <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=30&pause=1000&color=36BCF7&center=true&vCenter=true&width=500&lines=Hi+There!+%F0%9F%91%8B;I'm+a+Professional+Developer;Bachelor+of+Computer+Science+(S.Kom);Passionate+about+Clean+Code" alt="Typing SVG" />
   </a>
-  <a href="https://[WEBSITE_KAMU].com" target="blank">
-    <img src="https://img.shields.io/badge/Portfolio-FF5722?style=for-the-badge&logo=todoist&logoColor=white" alt="Website" />
+</div>
+
+<div align="center">
+  <h3>🚀 Building Scalable Solutions & Solving Complex Problems</h3>
+</div>
+
+---
+
+<div align="center">
+  <a href="https://github.com/anuraghazra/github-readme-stats">
+    <img height="180em" src="https://github-readme-stats.vercel.app/api?username=USERNAME_GITHUB_KAMU&show_icons=true&theme=tokyonight&hide_border=true&count_private=true&include_all_commits=true" />
+  </a>
+  
+  <a href="https://github.com/anuraghazra/github-readme-stats">
+    <img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=USERNAME_GITHUB_KAMU&layout=compact&theme=tokyonight&hide_border=true&langs_count=8" />
+  </a>
+</div>
+
+<br/>
+
+<div align="center">
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=USERNAME_GITHUB_KAMU&theme=tokyonight&hide_border=true" alt="GitHub Streak" />
+</div>
+
+---
+
+### 👨‍💻 Professional Summary
+
+Sebagai lulusan **S.Kom**, saya menggabungkan teori akademis yang kuat dengan praktik industri modern. Fokus utama saya adalah:
+
+* 🏛️ **System Architecture:** Merancang sistem yang *robust* dan *maintainable*.
+* ⚡ **Performance Optimization:** Memastikan aplikasi berjalan cepat dan efisien.
+* 🔒 **Security Best Practices:** Menerapkan standar keamanan pada setiap baris kode.
+
+---
+
+### 🛠️ Technical Expertise
+
+<div align="center">
+
+| Core | Frameworks & Libraries | DevOps & Tools |
+| :---: | :---: | :---: |
+| <img src="https://skillicons.dev/icons?i=java,py,js,ts" /> | <img src="https://skillicons.dev/icons?i=spring,react,nextjs,tailwind" /> | <img src="https://skillicons.dev/icons?i=git,docker,aws,linux" /> |
+| <img src="https://skillicons.dev/icons?i=mysql,postgres,mongodb,redis" /> | <img src="https://skillicons.dev/icons?i=laravel,flutter,nodejs" /> | <img src="https://skillicons.dev/icons?i=vscode,postman,figma" /> |
+
+</div>
+
+---
+
+### 📈 Contribution Graph
+
+<div align="center">
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=USERNAME_GITHUB_KAMU&bg_color=1a1b27&color=79ff97&line=36BCF7&point=FFFFFF&hide_border=true" width="100%"/>
+</div>
+
+---
+
+<div align="center">
+  <p>Let's connect and build something amazing together!</p>
+  
+  <a href="https://linkedin.com/in/[USERNAME_LINKEDIN]">
+    <img src="https://img.shields.io/badge/Connect-LinkedIn-0077B5?style=for-the-badge&logo=linkedin" />
+  </a>
+  <a href="mailto:[EMAIL_KAMU]">
+    <img src="https://img.shields.io/badge/Email-Me-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
   </a>
 </div>
