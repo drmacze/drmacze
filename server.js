@@ -351,7 +351,7 @@ function buildPixelSVG(data, artBase64) {
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Spotify Now Playing server running on port ${PORT}`);
-  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) console.warn('WARNING: Spotify credentials not set');
-  if (!SPOTIFY_REFRESH_TOKEN) console.log('INFO: No refresh token. Visit /auth to authenticate.');
+  console.log(`Now Playing server running on port ${PORT}`);
+  if (!LASTFM_API_KEY) console.warn('WARNING: LASTFM_API_KEY not set');
+  if (!LASTFM_USERNAME) console.warn('WARNING: LASTFM_USERNAME not set');
 });
