@@ -46,27 +46,54 @@ async function getAccessToken() {
 async function getNowPlaying() {
   const token = await getAccessToken();
   if (!token) return null;
+
+  // Try currently-playing first
   try {
     const res = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (res.status === 204 || !res.data) return { isPlaying: false };
-    const data = res.data;
-    const track = data.item;
-    if (!track) return { isPlaying: false };
+    if (res.status !== 204 && res.data && res.data.item) {
+      const data = res.data;
+      const track = data.item;
+      return {
+        isPlaying: data.is_playing,
+        title: track.name,
+        artist: track.artists.map(a => a.name).join(', '),
+        album: track.album.name,
+        albumArt: track.album.images[0]?.url || null,
+        songUrl: track.external_urls.spotify,
+        duration: track.duration_ms,
+        progress: data.progress_ms,
+      };
+    }
+  } catch (err) {
+    // 403/Premium error — fall through to recently-played
+    if (err.response?.status !== 403 && err.response?.status !== 204) {
+      console.error('Currently-playing error:', err.response?.status, JSON.stringify(err.response?.data));
+    }
+  }
+
+  // Fallback: recently-played (works without Premium)
+  try {
+    const res = await axios.get('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const items = res.data?.items;
+    if (!items || items.length === 0) return { isPlaying: false };
+    const track = items[0].track;
     return {
-      isPlaying: data.is_playing,
+      isPlaying: false,
+      isRecent: true,
       title: track.name,
       artist: track.artists.map(a => a.name).join(', '),
       album: track.album.name,
       albumArt: track.album.images[0]?.url || null,
       songUrl: track.external_urls.spotify,
       duration: track.duration_ms,
-      progress: data.progress_ms,
+      progress: 0,
     };
   } catch (err) {
-    if (err.response?.status === 204) return { isPlaying: false };
-    console.error('Now playing error:', err.response?.data || err.message);
+    console.error('Recently-played error:', err.response?.status, JSON.stringify(err.response?.data));
     return null;
   }
 }
@@ -88,7 +115,7 @@ async function fetchAlbumArtBase64(url) {
 app.get('/auth', (req, res) => {
   const base = getBaseUrl(req);
   const redirectUri = `${base}${REDIRECT_URI_PATH}`;
-  const scopes = 'user-read-currently-playing user-read-playback-state';
+  const scopes = 'user-read-currently-playing user-read-playback-state user-read-recently-played';
   const url = `https://accounts.spotify.com/authorize?response_type=code&client_id=${SPOTIFY_CLIENT_ID}&scope=${encodeURIComponent(scopes)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
   res.redirect(url);
 });
@@ -228,7 +255,7 @@ function progressPixels(pct, x, y, w, h) {
 }
 
 function buildPixelSVG(data, artBase64) {
-  const { isPlaying = false, title, artist, duration = 0, progress = 0 } = data;
+  const { isPlaying = false, isRecent = false, title, artist, duration = 0, progress = 0 } = data;
 
   const W = 490, H = 136;
   const displayTitle  = escX(truncate(title  || 'NOTHING PLAYING', 30));
@@ -325,7 +352,7 @@ function buildPixelSVG(data, artBase64) {
   <rect x="${W - 6}" y="${H - 6}" width="6" height="6" fill="${PINK}"/>
 
   <!-- Status label -->
-  <text x="16" y="13" font-family="'Courier New',monospace" font-size="7" fill="${isPlaying ? PINK : DEAD}" letter-spacing="2" font-weight="bold">${isPlaying ? 'NOW PLAYING' : 'NOTHING PLAYING'}</text>
+  <text x="16" y="13" font-family="'Courier New',monospace" font-size="7" fill="${isPlaying ? PINK : isRecent ? PURPLE : DEAD}" letter-spacing="2" font-weight="bold">${isPlaying ? 'NOW PLAYING' : isRecent ? 'LAST PLAYED' : 'NOTHING PLAYING'}</text>
 
   <!-- REC indicator -->
   ${recBlock}
