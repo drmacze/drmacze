@@ -37,36 +37,13 @@
       overflow-x: hidden;
     }
 
-    /* ── Fire background canvas – CSS pixel art shows in screenshots;
-          2-D canvas Doom fire overlays in real browsers               ── */
+    /* ── Fire background canvas ── */
     #glc {
       position: fixed; inset: 0;
       width: 100%; height: 100%;
       z-index: 0; pointer-events: none;
-      /* CSS pixel grid seams (14 px cells, 1.5 px gap) */
-      background-image:
-        repeating-linear-gradient(
-          90deg,
-          transparent 0px, transparent 12.5px,
-          rgba(0,0,0,0.80) 12.5px, rgba(0,0,0,0.80) 14px
-        ),
-        repeating-linear-gradient(
-          0deg,
-          transparent 0px, transparent 12.5px,
-          rgba(0,0,0,0.80) 12.5px, rgba(0,0,0,0.80) 14px
-        ),
-        /* fire gradient: yellow → orange → deep red → black */
-        linear-gradient(
-          0deg,
-          #FFD700   0%,
-          #FF6600  18%,
-          #CC2200  38%,
-          #771100  55%,
-          #331100  70%,
-          #0d0200  85%,
-          #060100 100%
-        );
-      background-size: 14px 14px, 14px 14px, 100% 100%;
+      background: #060100;
+      filter: blur(3px) brightness(1.15);
     }
 
     /* ── Scanlines ────────────────────────────────────────── */
@@ -87,6 +64,7 @@
       position: fixed; bottom: 0; left: 0;
       width: 100%; z-index: 3;
       pointer-events: none; display: block;
+      filter: blur(5px) brightness(1.35) saturate(1.4);
     }
 
     /* ── Screen corner brackets ───────────────────────────── */
@@ -366,8 +344,6 @@
     /* ── Footer ───────────────────────────────────────────── */
     .footer { font-size: 6px; color: var(--dead); letter-spacing: 3px; }
 
-    /* ── Fire bar height lock (JS canvas draws pixel blocks on top) ── */
-    #firebar { height: 220px !important; }
 
     /* ── Pixel art "not connected" message ────────────────── */
     .not-cfg {
@@ -516,27 +492,25 @@ const lenis = new Lenis({
 
 
 // ═══════════════════════════════════════════════════════════════
-// 2-D CANVAS  DOOM-STYLE PIXEL ART FIRE BACKGROUND
+// REALISTIC FIRE BACKGROUND — small cells + glow bloom
 // ═══════════════════════════════════════════════════════════════
 (function initFireBG() {
   const cvs = document.getElementById('glc');
   const ctx = cvs.getContext('2d');
   if (!ctx) { cvs.style.display = 'none'; return; }
 
-  /* ── palette: index 0 = black, 9 = yellow ── */
+  /* palette: idx 0=black(cold) → 14=white-yellow(hottest) */
   const PAL = [
-    '#060100','#220300','#440700','#771100',
-    '#991100','#CC2200','#FF4400','#FF6600',
-    '#FF9900','#FFD700'
+    '#060100','#130200','#2a0400','#440600',
+    '#660900','#991100','#bb1900','#dd2200',
+    '#ff3300','#ff5500','#ff7700','#ff9900',
+    '#ffbb00','#ffd700','#ffee80'
   ];
-  const NPAL = PAL.length;   /* 10 */
-  const CELL = 14;           /* px per grid cell */
-  const GAP  = 1;            /* seam width */
-  /* how many cols/rows of cells fill the viewport */
-  const getW = () => Math.max(window.innerWidth  || 0,
-    document.documentElement.clientWidth  || 0, screen.width  || 0, 320);
-  const getH = () => Math.max(window.innerHeight || 0,
-    document.documentElement.clientHeight || 0, screen.height || 0, 240);
+  const NPAL = PAL.length;
+  const CELL = 4;
+
+  const getW = () => Math.max(window.innerWidth  || 320, screen.width  || 320);
+  const getH = () => Math.max(window.innerHeight || 240, screen.height || 240);
 
   let COLS, ROWS, grid, nxtGrid;
 
@@ -544,68 +518,72 @@ const lenis = new Lenis({
     const W = getW(), H = getH();
     cvs.width  = W;
     cvs.height = H;
-    COLS = Math.ceil(W / CELL) + 1;
-    ROWS = Math.ceil(H / CELL) + 2;   /* extra rows below screen */
+    COLS = Math.ceil(W / CELL) + 2;
+    ROWS = Math.ceil(H / CELL) + 4;
     grid    = new Uint8Array(COLS * ROWS);
     nxtGrid = new Uint8Array(COLS * ROWS);
-    /* seed: bottom two rows are max heat */
+    /* seed: bottom 3 rows full heat */
     for (let c = 0; c < COLS; c++) {
       grid[(ROWS - 1) * COLS + c] = NPAL - 1;
       grid[(ROWS - 2) * COLS + c] = NPAL - 1;
+      grid[(ROWS - 3) * COLS + c] = NPAL - 2;
     }
   };
 
-  /* classic Doom fire propagation */
+  /* turbulent Doom fire — wind ±2, variable decay */
   const spread = () => {
-    nxtGrid.set(grid);
+    nxtGrid.set(grid);   /* start from current state */
     for (let r = 0; r < ROWS - 1; r++) {
       for (let c = 0; c < COLS; c++) {
         const below = grid[(r + 1) * COLS + c];
-        /* random sideways drift ±1, decay 0-1 */
-        const wind  = (Math.random() * 3 | 0) - 1;  /* -1, 0, or 1 */
-        const decay = Math.random() < 0.55 ? 1 : 0;
+        const wind  = (Math.random() * 5 | 0) - 2;   /* -2 to +2 */
+        const decay = Math.random() < 0.45 ? 1 : 0;
         const nc    = Math.max(0, Math.min(COLS - 1, c + wind));
         nxtGrid[r * COLS + nc] = Math.max(0, below - decay);
       }
+    }
+    /* re-seed bottom rows with slight noise so fire never goes out */
+    for (let c = 0; c < COLS; c++) {
+      const heat = Math.random() < 0.96 ? NPAL - 1 : NPAL - 3;
+      nxtGrid[(ROWS - 1) * COLS + c] = heat;
+      nxtGrid[(ROWS - 2) * COLS + c] = heat;
     }
     const tmp = grid; grid = nxtGrid; nxtGrid = tmp;
   };
 
   const draw = () => {
     ctx.clearRect(0, 0, cvs.width, cvs.height);
-    /* draw cells */
-    for (let r = 0; r < ROWS - 2; r++) {          /* skip the invisible bottom rows */
-      /* y from top of canvas */
-      const y   = r * CELL;
-      /* screen fraction 0(top)→1(bottom) — used to dim upper cells */
-      const yF  = r / (ROWS - 2);
-      /* opacity: dim at top, full at bottom – keeps card readable */
-      const opa = Math.min(1, 0.18 + 0.82 * yF * yF);
+    const visRows = ROWS - 3;
+    for (let r = 0; r < visRows; r++) {
+      const y  = r * CELL;
+      const yF = r / visRows;
+      /* fade top 40% of screen so card stays readable */
+      const opa = yF < 0.4
+        ? yF / 0.4 * 0.55
+        : 0.55 + (yF - 0.4) / 0.6 * 0.45;
       for (let c = 0; c < COLS; c++) {
         const t = grid[r * COLS + c];
-        if (t === 0) continue;                     /* skip black cells (transparent) */
-        const x = c * CELL;
+        if (t === 0) continue;
         ctx.globalAlpha = opa;
+        /* glow bloom — hot cells glow more */
+        ctx.shadowBlur  = t > 9 ? 14 : t > 5 ? 8 : 3;
+        ctx.shadowColor = PAL[Math.min(t + 2, NPAL - 1)];
         ctx.fillStyle   = PAL[t];
-        ctx.fillRect(x, y, CELL - GAP, CELL - GAP);
+        ctx.fillRect(c * CELL, y, CELL, CELL);
       }
     }
     ctx.globalAlpha = 1;
+    ctx.shadowBlur  = 0;
   };
 
-  /* draw a first frame synchronously so it shows even before rAF */
   init();
-  /* warm up: run 40 spread passes so fire reaches the top on load */
-  for (let i = 0; i < 40; i++) spread();
+  for (let i = 0; i < 80; i++) spread();
   draw();
 
-  window.addEventListener('resize', () => { init(); });
+  window.addEventListener('resize', init);
 
-  let frame = 0;
   (function loop() {
-    frame++;
-    /* spread every 2nd frame to slow the rise slightly */
-    if (frame % 2 === 0) spread();
+    spread();
     draw();
     requestAnimationFrame(loop);
   })();
@@ -613,134 +591,93 @@ const lenis = new Lenis({
 
 
 // ═══════════════════════════════════════════════════════════════
-// PIXEL ART FIRE BAR (bottom) — matches reference image style
+// REALISTIC FIRE BAR (bottom) — 2D Doom propagation + glow
 // ═══════════════════════════════════════════════════════════════
 (function initFireBar() {
   const cvs = document.getElementById('firebar');
   const ctx = cvs.getContext('2d');
 
-  const CELL   = 10;
-  const ROWS   = 22;
-  const GAP    = 1;
-  cvs.height   = ROWS * CELL;
-
-  // fire color palette: index 0 = bottom (yellow), last = top (dark)
+  /* palette: cold(0) → hot(14) */
   const PAL = [
-    '#FFD700','#FFD200','#FFC400',  // yellow bottom
-    '#FFA500','#FF8800','#FF6600',  // orange
-    '#FF4400','#FF2200','#EE1100',  // red-orange
-    '#CC1100','#AA0F00','#880D00',  // red
-    '#660B00','#440700','#330500',  // dark red
-    '#220300','#110100','#050000',  // near-black top
+    '#060100','#130200','#2a0400','#440600',
+    '#660900','#991100','#bb1900','#dd2200',
+    '#ff3300','#ff5500','#ff7700','#ff9900',
+    '#ffbb00','#ffd700','#ffee80'
   ];
+  const NPAL = PAL.length;
+  const CELL = 4;
+  const ROWS = 40;   /* ~160px tall */
 
-  let W, COLS;
-  let heights  = [];
-  let targets  = [];
-  let vels     = [];
-  let sparks   = []; // floating spark pixels
+  let COLS, grid, nxtGrid;
+  let playing = false;
 
-  let playing  = false;
+  const getW = () => Math.max(window.innerWidth || 320, screen.width || 320);
 
-  const getW = () => Math.max(
-    window.innerWidth || 0,
-    document.documentElement.clientWidth || 0,
-    screen.width || 0,
-    320
-  );
+  const init = () => {
+    const W = getW();
+    COLS = Math.ceil(W / CELL) + 2;
+    cvs.width  = W;
+    cvs.height = ROWS * CELL;
+    grid    = new Uint8Array(COLS * ROWS);
+    nxtGrid = new Uint8Array(COLS * ROWS);
+    seedBottom();
+  };
 
-  const resize = () => {
-    W    = getW();
-    COLS = Math.ceil(W / CELL);
-    cvs.width = W;
-    // pre-populate with visible idle flame heights
-    while (heights.length < COLS) {
-      heights.push(ROWS * (0.3 + Math.random() * 0.35));
-      targets.push(ROWS * (0.4 + Math.random() * 0.4));
-      vels.push(0);
+  const seedBottom = () => {
+    for (let c = 0; c < COLS; c++) {
+      grid[(ROWS - 1) * COLS + c] = NPAL - 1;
+      grid[(ROWS - 2) * COLS + c] = NPAL - 1;
+      grid[(ROWS - 3) * COLS + c] = NPAL - 2;
     }
   };
-  resize();
-  // re-run after layout is fully computed
-  window.addEventListener('load', resize);
-  window.addEventListener('resize', resize);
 
-  // spawn sparks
-  function spawnSpark(x, y) {
-    sparks.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 0.8,
-      vy: -(0.4 + Math.random() * 0.8),
-      life: 1.0,
-      decay: 0.02 + Math.random() * 0.03,
-    });
-  }
-
-  function update() {
-    const baseMax = playing ? ROWS * 0.95 : ROWS * 0.55;
-
-    for (let i = 0; i < COLS; i++) {
-      // random target bursts
-      if (Math.random() < (playing ? 0.08 : 0.03)) {
-        targets[i] = baseMax * (0.4 + Math.random() * 0.6);
-      }
-      // spring + damping
-      vels[i] += (targets[i] - heights[i]) * 0.12;
-      vels[i] *= 0.72;
-      heights[i] += vels[i];
-      heights[i]  = Math.max(0, heights[i]);
-      // decay
-      targets[i] *= 0.94;
-
-      // spawn sparks from tall columns
-      if (playing && heights[i] > ROWS * 0.6 && Math.random() < 0.04) {
-        spawnSpark(i * CELL + CELL / 2, cvs.height - heights[i] * CELL);
+  const spread = () => {
+    nxtGrid.set(grid);   /* start from current state */
+    const intensity = playing ? 0.38 : 0.52;  /* lower = more intense */
+    for (let r = 0; r < ROWS - 1; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const below = grid[(r + 1) * COLS + c];
+        const wind  = (Math.random() * 5 | 0) - 2;
+        const decay = Math.random() < intensity ? 1 : 0;
+        const nc    = Math.max(0, Math.min(COLS - 1, c + wind));
+        nxtGrid[r * COLS + nc] = Math.max(0, below - decay);
       }
     }
+    /* re-seed bottom: playing = full heat, idle = slight gaps */
+    for (let c = 0; c < COLS; c++) {
+      const hot = playing
+        ? Math.random() < 0.98 ? NPAL - 1 : NPAL - 2
+        : Math.random() < 0.80 ? NPAL - 1 : Math.floor(Math.random() * 4);
+      nxtGrid[(ROWS - 1) * COLS + c] = hot;
+      nxtGrid[(ROWS - 2) * COLS + c] = hot;
+    }
+    const tmp = grid; grid = nxtGrid; nxtGrid = tmp;
+  };
 
-    // update sparks
-    sparks = sparks.filter(s => s.life > 0);
-    sparks.forEach(s => {
-      s.x += s.vx; s.y += s.vy;
-      s.life -= s.decay;
-    });
-  }
-
-  function draw() {
+  const draw = () => {
     ctx.clearRect(0, 0, cvs.width, cvs.height);
-
-    // draw columns
-    for (let i = 0; i < COLS; i++) {
-      const h = Math.round(heights[i]);
-      for (let j = 0; j < h && j < ROWS; j++) {
-        // j=0 bottom (yellow), j=h-1 top (dark)
-        // j=0 = bottom row (yellow), j=ROWS-1 = top (dark)
-        const colorIdx = Math.min(Math.round((j / ROWS) * (PAL.length - 1)), PAL.length - 1);
-        ctx.fillStyle = PAL[colorIdx];
-        ctx.fillRect(
-          i * CELL,
-          cvs.height - (j + 1) * CELL,
-          CELL - GAP,
-          CELL - GAP
-        );
+    for (let r = 0; r < ROWS; r++) {
+      const y = r * CELL;
+      for (let c = 0; c < COLS; c++) {
+        const t = grid[r * COLS + c];
+        if (t === 0) continue;
+        /* bloom glow — brightest on hottest cells */
+        ctx.shadowBlur  = t > 10 ? 18 : t > 6 ? 10 : 4;
+        ctx.shadowColor = PAL[Math.min(t + 3, NPAL - 1)];
+        ctx.fillStyle   = PAL[t];
+        ctx.fillRect(c * CELL, y, CELL, CELL);
       }
     }
+    ctx.shadowBlur = 0;
+  };
 
-    // draw sparks
-    sparks.forEach(s => {
-      const alpha = s.life;
-      ctx.globalAlpha = alpha;
-      // spark color based on life
-      ctx.fillStyle = s.life > 0.5 ? '#FFD700' : s.life > 0.25 ? '#FF6600' : '#CC2200';
-      ctx.fillRect(Math.round(s.x), Math.round(s.y), CELL - GAP, CELL - GAP);
-    });
-    ctx.globalAlpha = 1;
-  }
+  init();
+  for (let i = 0; i < 60; i++) spread();
 
-  (function loop() {
-    update(); draw();
-    requestAnimationFrame(loop);
-  })();
+  window.addEventListener('resize', init);
+  window.addEventListener('load', init);
+
+  (function loop() { spread(); draw(); requestAnimationFrame(loop); })();
 
   window.setFirePlaying = v => { playing = v; };
 })();
