@@ -1,4 +1,4 @@
-name: Update Stats Badge
+name: Update Stats & Pinned Projects
 
 on:
   schedule:
@@ -9,38 +9,71 @@ permissions:
   contents: write
 
 jobs:
-  update-stats:
+  update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch GitHub Stats & Update Badge URLs
+      - name: Update pinned projects & stats date
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DATA=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/users/drmacze")
-          REPOS=$(echo "$DATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['public_repos'])")
-          FOLLOWERS=$(echo "$DATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['followers'])")
-          COMMITS=$(curl -s \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github.cloak-preview+json" \
-            "https://api.github.com/search/commits?q=author:drmacze&per_page=1" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin).get('total_count',0))")
-          echo "::notice::Repos=$REPOS | Followers=$FOLLOWERS | Commits=$COMMITS"
+          python3 << 'PYEOF'
+          import urllib.request, json, datetime, re
 
-      - name: Update stats timestamp in README
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          DATE=$(date -u +"%Y-%m-%d")
-          # Only update if the date line actually changed to avoid empty commits
-          sed -i "s/<!-- stats-updated:.* -->/<!-- stats-updated: $DATE -->/" README.md || true
+          headers = {
+            "Authorization": f"Bearer ${{ secrets.GITHUB_TOKEN }}",
+            "Accept": "application/vnd.github+json"
+          }
+
+          # Fetch repos
+          req = urllib.request.Request(
+            "https://api.github.com/users/drmacze/repos?per_page=20&sort=updated&type=owner",
+            headers=headers
+          )
+          with urllib.request.urlopen(req) as r:
+            repos = json.loads(r.read())
+
+          # Filter and sort
+          filtered = [r for r in repos if not r["fork"] and r["name"] != "drmacze"]
+          top = sorted(filtered, key=lambda r: (r["stargazers_count"], r["updated_at"]), reverse=True)[:5]
+
+          # Build table
+          rows = ["| repo | lang | desc |", "|------|------|------|"]
+          for r in top:
+            name = r["name"]
+            url  = r["html_url"]
+            lang = f'`{r["language"]}`' if r["language"] else "—"
+            desc = (r["description"] or "—")[:60]
+            rows.append(f"| [{name}]({url}) | {lang} | {desc} |")
+
+          table = "\n".join(rows)
+
+          # Read README
+          with open("README.md", "r") as f:
+            content = f.read()
+
+          # Replace pinned projects block
+          new_block = f"<!-- PINNED-PROJECTS:START -->\n{table}\n<!-- PINNED-PROJECTS:END -->"
+          content = re.sub(
+            r"<!-- PINNED-PROJECTS:START -->.*?<!-- PINNED-PROJECTS:END -->",
+            new_block, content, flags=re.DOTALL
+          )
+
+          # Update date
+          today = datetime.date.today().isoformat()
+          content = re.sub(r"<!-- stats-updated: .* -->", f"<!-- stats-updated: {today} -->", content)
+
+          with open("README.md", "w") as f:
+            f.write(content)
+
+          print("Updated pinned projects and stats date.")
+          PYEOF
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: refresh stats [${{ github.run_number }}]"
-          commit_options: "--allow-empty"
+          commit_message: "chore: auto-update pinned projects & stats [${{ github.run_number }}]"
           file_pattern: "README.md"
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          skip_dirty_check: false
