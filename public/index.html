@@ -11,18 +11,23 @@
   <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/bundled/lenis.min.js"></script>
   <style>
     :root {
-      --green: #22c55e;
-      --green-dim: #22c55e44;
-      --dark: #0d1117;
-      --surface: #161b22;
-      --border: #30363d;
-      --text: #e6edf3;
-      --muted: #8b949e;
-      --dead: #21262d;
+      --pink:       #e91e8c;
+      --pink-light: #f472b6;
+      --pink-dim:   #e91e8c33;
+      --pink-glow:  #e91e8c22;
+      --purple:     #9c27b0;
+      --purple-dim: #9c27b044;
+      --rose:       #f8c8d4;
+      --dark:       #0d0014;
+      --surface:    #1a0a2e;
+      --surface2:   #2d1b3d;
+      --border:     #3d2a50;
+      --text:       #f8e8ff;
+      --muted:      #c084fc;
+      --dead:       #4a3560;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: auto; }
 
     body {
@@ -32,9 +37,10 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
+      image-rendering: pixelated;
     }
 
-    /* ── Pixel grid background ── */
+    /* ── Large pixel grid background (like beadwork) ── */
     body::before {
       content: '';
       position: fixed;
@@ -42,46 +48,57 @@
       background-image:
         linear-gradient(var(--surface) 1px, transparent 1px),
         linear-gradient(90deg, var(--surface) 1px, transparent 1px);
-      background-size: 24px 24px;
-      opacity: 0.35;
+      background-size: 10px 10px;
+      opacity: 0.6;
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ── CRT scanlines ── */
+    /* ── Gradient vignette ── */
     body::after {
       content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 80% at 20% 20%, #e91e8c0a 0%, transparent 60%),
+        radial-gradient(ellipse 80% 80% at 80% 80%, #9c27b00a 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Scanlines ── */
+    .scanlines {
       position: fixed;
       inset: 0;
       background: repeating-linear-gradient(
         0deg,
         transparent,
-        transparent 2px,
-        rgba(0,0,0,0.07) 2px,
-        rgba(0,0,0,0.07) 4px
+        transparent 3px,
+        rgba(0,0,0,0.08) 3px,
+        rgba(0,0,0,0.08) 4px
       );
       pointer-events: none;
-      z-index: 999;
+      z-index: 998;
     }
 
-    /* ── Corner decorations ── */
+    /* ── Pixel corner brackets ── */
     .corner {
       position: fixed;
-      width: 20px;
-      height: 20px;
       z-index: 10;
+      width: 24px;
+      height: 24px;
     }
     .corner::before, .corner::after {
       content: '';
       position: absolute;
-      background: var(--green);
+      background: var(--pink);
     }
     .corner::before { width: 100%; height: 2px; top: 0; left: 0; }
     .corner::after  { width: 2px; height: 100%; top: 0; left: 0; }
+    .corner.tl { top: 12px; left: 12px; }
     .corner.tr { top: 12px; right: 12px; transform: rotate(90deg); }
     .corner.bl { bottom: 12px; left: 12px; transform: rotate(270deg); }
     .corner.br { bottom: 12px; right: 12px; transform: rotate(180deg); }
-    .corner.tl { top: 12px; left: 12px; }
 
     /* ── Layout ── */
     .page {
@@ -92,11 +109,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 40px;
+      gap: 36px;
       padding: 60px 24px;
     }
 
-    /* ── System header ── */
+    /* ── Header ── */
     .sys-header {
       display: flex;
       flex-direction: column;
@@ -105,75 +122,86 @@
     }
 
     .sys-label {
-      font-size: 8px;
+      font-size: 7px;
       letter-spacing: 4px;
       color: var(--muted);
       text-transform: uppercase;
     }
 
     .sys-title {
-      font-size: 14px;
-      color: var(--green);
+      font-size: 16px;
       letter-spacing: 3px;
-      text-shadow: 0 0 20px var(--green-dim);
+      background: linear-gradient(90deg, var(--pink), var(--pink-light), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 16px var(--pink-dim));
       position: relative;
     }
 
-    .sys-title::after {
-      content: '_';
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 14px;
+      background: var(--pink);
+      vertical-align: middle;
+      margin-left: 4px;
       animation: blink 1s step-end infinite;
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
     .sys-divider {
-      width: 200px;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      width: 240px;
+      background: linear-gradient(90deg, transparent, var(--pink), var(--purple), transparent);
+      transform-origin: center;
     }
 
     /* ── Main card ── */
     .card {
       width: 100%;
-      max-width: 500px;
+      max-width: 520px;
       position: relative;
     }
 
+    /* Pixel-art clip corners */
     .card-inner {
       background: var(--surface);
-      border: 1px solid var(--green-dim);
-      padding: 28px;
+      border: 1px solid var(--border);
+      padding: 24px;
       position: relative;
       clip-path: polygon(
-        0 8px, 8px 0,
-        calc(100% - 8px) 0, 100% 8px,
-        100% calc(100% - 8px), calc(100% - 8px) 100%,
-        8px 100%, 0 calc(100% - 8px)
+        0 10px, 10px 0,
+        calc(100% - 10px) 0, 100% 10px,
+        100% calc(100% - 10px), calc(100% - 10px) 100%,
+        10px 100%, 0 calc(100% - 10px)
       );
+      transition: border-color 0.4s, box-shadow 0.4s;
     }
 
-    /* Pixel corner accents */
+    .card.playing .card-inner {
+      border-color: var(--pink-dim);
+      box-shadow:
+        0 0 40px -10px var(--pink-dim),
+        inset 0 0 40px -20px var(--pink-glow);
+    }
+
+    /* Pixel corner squares */
     .px-corner {
       position: absolute;
-      width: 6px;
-      height: 6px;
-      background: var(--green);
+      width: 8px;
+      height: 8px;
+      background: var(--pink);
+      z-index: 2;
     }
     .px-corner.tl { top: -1px; left: -1px; }
     .px-corner.tr { top: -1px; right: -1px; }
     .px-corner.bl { bottom: -1px; left: -1px; }
     .px-corner.br { bottom: -1px; right: -1px; }
 
-    /* Glow border on playing */
-    .card.playing .card-inner {
-      border-color: var(--green-dim);
-      box-shadow: 0 0 30px -8px var(--green-dim), inset 0 0 30px -20px var(--green-dim);
-    }
-
-    /* ── Card top row ── */
+    /* ── Card top ── */
     .card-top {
       display: flex;
       align-items: center;
@@ -187,55 +215,79 @@
       gap: 8px;
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      background: var(--green);
+    /* Pixel-art LED indicator (4×4 grid of squares) */
+    .led {
+      display: grid;
+      grid-template-columns: repeat(2, 4px);
+      gap: 1px;
+    }
+    .led-cell {
+      width: 4px;
+      height: 4px;
+      background: var(--dead);
+    }
+    .led.on .led-cell {
+      background: var(--pink);
+      box-shadow: 0 0 4px var(--pink);
+      animation: led-pulse 1s ease-in-out infinite alternate;
+    }
+    @keyframes led-pulse {
+      from { opacity: 0.6; }
+      to   { opacity: 1; }
     }
 
     .status-label {
       font-size: 7px;
       letter-spacing: 2px;
-      color: var(--green);
+      color: var(--dead);
     }
+    .status-label.on { color: var(--pink); }
 
-    .status-dot.off { background: var(--dead); }
-    .status-label.off { color: var(--muted); }
-
-    /* Equalizer icon (top-right) */
-    .eq-icon {
+    /* Pixel equalizer blocks (right side) */
+    .eq-wrap {
       display: flex;
       align-items: flex-end;
       gap: 3px;
-      height: 16px;
+      height: 20px;
     }
 
     .eq-bar {
-      width: 4px;
-      background: var(--green);
-      border-radius: 0;
+      width: 5px;
+      background: var(--pink);
+      image-rendering: pixelated;
+      box-shadow: 0 0 4px var(--pink-dim);
     }
 
-    /* ── Art + info row ── */
+    /* ── Art + info ── */
     .card-body {
       display: flex;
       gap: 20px;
       align-items: flex-start;
     }
 
-    .art-wrap {
-      flex-shrink: 0;
-      position: relative;
-    }
+    .art-wrap { position: relative; flex-shrink: 0; }
 
     .art-frame {
-      width: 96px;
-      height: 96px;
-      border: 1px solid var(--green);
+      width: 100px;
+      height: 100px;
+      border: 2px solid var(--pink-dim);
       position: relative;
       overflow: hidden;
-      background: var(--dead);
+      background: var(--surface2);
       image-rendering: pixelated;
+    }
+
+    /* Pixel grid overlay on art */
+    .art-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 5px 5px;
+      z-index: 2;
+      pointer-events: none;
     }
 
     .art-frame img {
@@ -246,56 +298,43 @@
       display: block;
     }
 
-    .art-frame .art-placeholder {
+    .art-placeholder {
       width: 100%;
       height: 100%;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-    }
-
-    /* Pixel music note via CSS */
-    .pixel-note {
-      width: 24px;
-      height: 24px;
-      position: relative;
-    }
-
-    .art-frame::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(34,197,94,0.08) 0%, transparent 60%);
-      pointer-events: none;
     }
 
     .art-corner {
       position: absolute;
-      width: 4px;
-      height: 4px;
-      background: var(--green);
+      width: 5px;
+      height: 5px;
+      background: var(--pink);
+      z-index: 3;
     }
     .art-corner.tl { top: -1px; left: -1px; }
     .art-corner.tr { top: -1px; right: -1px; }
     .art-corner.bl { bottom: -1px; left: -1px; }
     .art-corner.br { bottom: -1px; right: -1px; }
 
-    .info {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    /* Pink gradient shimmer on art */
+    .art-shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--pink-glow) 0%, transparent 50%);
+      z-index: 1;
+      pointer-events: none;
     }
 
+    .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+
     .song-title {
-      font-size: 11px;
-      color: var(--text);
-      line-height: 1.6;
+      font-size: 10px;
+      line-height: 1.8;
       letter-spacing: 0.5px;
       word-break: break-word;
+      color: var(--text);
     }
 
     .song-artist {
@@ -310,125 +349,108 @@
       align-items: center;
       gap: 6px;
       font-size: 7px;
-      color: var(--green);
+      color: var(--pink);
       text-decoration: none;
       letter-spacing: 1px;
-      border: 1px solid var(--green-dim);
-      padding: 5px 8px;
-      margin-top: 4px;
-      transition: background 0.15s, color 0.15s;
+      border: 1px solid var(--pink-dim);
+      padding: 6px 10px;
+      margin-top: 6px;
+      clip-path: polygon(0 4px, 4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px));
+      transition: background 0.15s;
     }
-    .open-link:hover {
-      background: var(--green-dim);
-      color: var(--text);
-    }
-    .open-link svg { width: 10px; height: 10px; }
+    .open-link:hover { background: var(--pink-glow); }
+    .open-link svg { width: 10px; height: 10px; fill: currentColor; }
 
-    /* ── Progress section ── */
-    .progress-section {
-      margin-top: 20px;
-    }
+    /* ── Progress ── */
+    .progress-section { margin-top: 20px; }
 
-    .progress-pixel-bar {
+    .prog-track {
       display: flex;
-      gap: 3px;
+      gap: 2px;
       margin-bottom: 8px;
     }
 
-    .px-block {
-      height: 6px;
+    .prog-px {
+      height: 8px;
       flex: 1;
-      background: var(--dead);
-      transition: background 0.3s;
+      background: var(--surface2);
+      position: relative;
+      clip-path: none;
     }
 
-    .px-block.filled { background: var(--green); }
+    .prog-px.filled {
+      background: var(--pink);
+      box-shadow: 0 0 4px var(--pink-dim);
+    }
+
+    .prog-px.half {
+      background: linear-gradient(90deg, var(--pink) 50%, var(--surface2) 50%);
+    }
 
     .time-row {
       display: flex;
       justify-content: space-between;
       font-size: 7px;
-      color: var(--muted);
+      color: var(--dead);
       letter-spacing: 1px;
     }
 
     /* ── Auth box ── */
     .auth-box {
+      display: none;
       width: 100%;
-      max-width: 500px;
-      border: 1px solid #f0883e55;
+      max-width: 520px;
       background: var(--surface);
+      border: 1px solid #f0883e55;
       padding: 28px;
       text-align: center;
-      display: none;
       clip-path: polygon(
-        0 8px, 8px 0,
-        calc(100% - 8px) 0, 100% 8px,
-        100% calc(100% - 8px), calc(100% - 8px) 100%,
-        8px 100%, 0 calc(100% - 8px)
+        0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px,
+        100% calc(100% - 10px), calc(100% - 10px) 100%,
+        10px 100%, 0 calc(100% - 10px)
       );
     }
 
-    .auth-box h3 {
-      font-size: 10px;
-      color: #f0883e;
-      margin-bottom: 12px;
-      letter-spacing: 2px;
-    }
-
-    .auth-box p {
-      font-size: 7px;
-      color: var(--muted);
-      line-height: 2;
-      margin-bottom: 20px;
-    }
+    .auth-box h3 { font-size: 10px; color: #f0883e; margin-bottom: 12px; letter-spacing: 2px; }
+    .auth-box p  { font-size: 7px; color: var(--muted); line-height: 2; margin-bottom: 20px; }
 
     .btn-auth {
       display: inline-block;
       padding: 10px 20px;
-      background: var(--green);
-      color: var(--dark);
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
       font-family: 'Press Start 2P', monospace;
       font-size: 8px;
       text-decoration: none;
       letter-spacing: 1px;
-      transition: opacity 0.2s;
+      clip-path: polygon(0 4px, 4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px));
     }
-
-    .btn-auth:hover { opacity: 0.85; }
 
     /* ── Embed section ── */
     .embed-section {
-      width: 100%;
-      max-width: 500px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      padding: 20px;
       display: none;
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 16px 20px;
     }
 
-    .embed-label {
-      font-size: 7px;
-      letter-spacing: 3px;
-      color: var(--muted);
-      margin-bottom: 12px;
-      display: block;
-    }
+    .embed-label { font-size: 7px; letter-spacing: 3px; color: var(--dead); margin-bottom: 10px; display: block; }
 
     .embed-code {
       background: var(--dark);
       border: 1px solid var(--border);
       padding: 10px 12px;
       font-size: 9px;
-      color: var(--green);
+      color: var(--pink);
       font-family: 'Courier New', monospace;
       word-break: break-all;
       cursor: pointer;
       transition: border-color 0.2s;
       display: block;
     }
-
-    .embed-code:hover { border-color: var(--green); }
+    .embed-code:hover { border-color: var(--pink); }
     .embed-hint { font-size: 7px; color: var(--dead); margin-top: 6px; text-align: right; }
 
     /* ── Particle canvas ── */
@@ -437,37 +459,33 @@
       inset: 0;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.5;
     }
 
     /* ── Footer ── */
-    .footer {
-      font-size: 7px;
-      color: var(--dead);
-      letter-spacing: 2px;
-    }
+    .footer { font-size: 7px; color: var(--dead); letter-spacing: 2px; }
   </style>
 </head>
 <body>
 
   <canvas id="particles"></canvas>
+  <div class="scanlines"></div>
 
-  <!-- Fixed corner decorations -->
   <div class="corner tl"></div>
   <div class="corner tr"></div>
   <div class="corner bl"></div>
   <div class="corner br"></div>
 
-  <div class="page" id="page">
+  <div class="page">
 
-    <!-- Header -->
     <div class="sys-header" id="header">
-      <div class="sys-label">SYSTEM v2.0 // AUDIO MODULE</div>
-      <div class="sys-title" id="sys-title">NOW_PLAYING</div>
-      <div class="sys-divider" id="sys-divider"></div>
+      <div class="sys-label">AUDIO MODULE // SYSTEM V2.0</div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="sys-title">NOW_PLAYING</div>
+        <div class="cursor"></div>
+      </div>
+      <div class="sys-divider" id="divider"></div>
     </div>
 
-    <!-- Card -->
     <div class="card" id="card">
       <div class="px-corner tl"></div>
       <div class="px-corner tr"></div>
@@ -475,40 +493,45 @@
       <div class="px-corner br"></div>
       <div class="card-inner">
 
-        <!-- Top row -->
         <div class="card-top">
           <div class="status-row">
-            <div class="status-dot off" id="sdot"></div>
-            <div class="status-label off" id="slabel">LOADING...</div>
+            <div class="led" id="led">
+              <div class="led-cell"></div>
+              <div class="led-cell"></div>
+              <div class="led-cell"></div>
+              <div class="led-cell"></div>
+            </div>
+            <div class="status-label" id="slabel">LOADING</div>
           </div>
-          <div class="eq-icon" id="eq-icon">
-            <div class="eq-bar" id="b1" style="height:4px"></div>
+          <div class="eq-wrap" id="eq-wrap">
+            <div class="eq-bar" id="b1" style="height:3px"></div>
             <div class="eq-bar" id="b2" style="height:8px"></div>
-            <div class="eq-bar" id="b3" style="height:6px"></div>
-            <div class="eq-bar" id="b4" style="height:10px"></div>
-            <div class="eq-bar" id="b5" style="height:5px"></div>
-            <div class="eq-bar" id="b6" style="height:12px"></div>
-            <div class="eq-bar" id="b7" style="height:7px"></div>
+            <div class="eq-bar" id="b3" style="height:5px"></div>
+            <div class="eq-bar" id="b4" style="height:12px"></div>
+            <div class="eq-bar" id="b5" style="height:4px"></div>
+            <div class="eq-bar" id="b6" style="height:15px"></div>
+            <div class="eq-bar" id="b7" style="height:6px"></div>
+            <div class="eq-bar" id="b8" style="height:9px"></div>
           </div>
         </div>
 
-        <!-- Body -->
         <div class="card-body">
           <div class="art-wrap">
             <div class="art-frame" id="art-frame">
-              <div class="art-placeholder" id="art-placeholder">
-                <!-- SVG pixel music note -->
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="10" y="2" width="2" height="14" fill="#22c55e" opacity="0.6"/>
-                  <rect x="12" y="2" width="8" height="2" fill="#22c55e" opacity="0.6"/>
-                  <rect x="18" y="2" width="2" height="6" fill="#22c55e" opacity="0.6"/>
-                  <rect x="6" y="14" width="6" height="4" fill="#22c55e" opacity="0.6"/>
-                  <rect x="14" y="14" width="6" height="4" fill="#22c55e" opacity="0.6"/>
-                  <rect x="4" y="16" width="4" height="4" fill="#22c55e" opacity="0.6"/>
-                  <rect x="12" y="16" width="4" height="4" fill="#22c55e" opacity="0.6"/>
+              <div class="art-placeholder" id="art-ph">
+                <!-- Pixel note icon -->
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="13" y="3" width="3" height="18" fill="#e91e8c" opacity="0.5"/>
+                  <rect x="16" y="3" width="10" height="3" fill="#e91e8c" opacity="0.5"/>
+                  <rect x="23" y="3" width="3" height="8" fill="#e91e8c" opacity="0.5"/>
+                  <rect x="8" y="19" width="8" height="5" fill="#e91e8c" opacity="0.6"/>
+                  <rect x="18" y="19" width="8" height="5" fill="#e91e8c" opacity="0.6"/>
+                  <rect x="5" y="21" width="6" height="5" fill="#e91e8c" opacity="0.7"/>
+                  <rect x="15" y="21" width="6" height="5" fill="#e91e8c" opacity="0.7"/>
                 </svg>
               </div>
               <img id="art-img" style="display:none" alt=""/>
+              <div class="art-shimmer"></div>
             </div>
             <div class="art-corner tl"></div>
             <div class="art-corner tr"></div>
@@ -520,15 +543,14 @@
             <div class="song-title" id="s-title">---</div>
             <div class="song-artist" id="s-artist">---</div>
             <a class="open-link" id="s-link" href="#" target="_blank" style="display:none">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.624.624 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.624.624 0 0 1-.277-1.216c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 0 1 .207.858zm1.223-2.723a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.781.781 0 1 1-.454-1.491c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.563-1.08 9.487-.871 13.22 1.37a.937.937 0 0 1-.96 1.578l-.1-.001z"/></svg>
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.624.624 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.624.624 0 0 1-.277-1.216c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 0 1 .207.858zm1.223-2.723a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.781.781 0 1 1-.454-1.491c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.563-1.08 9.487-.871 13.22 1.37a.937.937 0 0 1-.96 1.578l-.1-.001z"/></svg>
               OPEN IN SPOTIFY
             </a>
           </div>
         </div>
 
-        <!-- Progress -->
         <div class="progress-section">
-          <div class="progress-pixel-bar" id="prog-bar"></div>
+          <div class="prog-track" id="prog-track"></div>
           <div class="time-row">
             <span id="t-cur">0:00</span>
             <span id="t-dur">0:00</span>
@@ -538,182 +560,164 @@
       </div>
     </div>
 
-    <!-- Auth box -->
     <div class="auth-box" id="auth-box">
       <h3>NOT CONNECTED</h3>
       <p>Connect your Spotify account<br/>to display now playing.</p>
       <a class="btn-auth" href="/auth">CONNECT SPOTIFY</a>
     </div>
 
-    <!-- Embed section -->
     <div class="embed-section" id="embed-section">
       <span class="embed-label">README EMBED CODE</span>
       <div class="embed-code" id="embed-code" onclick="copyEmbed(this)"></div>
       <div class="embed-hint">CLICK TO COPY</div>
     </div>
 
-    <div class="footer" id="footer">DRMACZE // SPOTIFY MODULE // 2026</div>
+    <div class="footer">DRMACZE // SPOTIFY MODULE // 2026</div>
 
   </div>
 
   <script>
-    // ── Lenis smooth scroll ───────────────────────────────────────────────────
+    // ── Lenis ─────────────────────────────────────────────────────────────────
     const lenis = new Lenis({
       duration: 1.4,
       easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
     });
-    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
-    requestAnimationFrame(raf);
+    (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
 
     // ── Pixel particle system ────────────────────────────────────────────────
-    const canvas = document.getElementById('particles');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
+    const cvs = document.getElementById('particles');
+    const ctx = cvs.getContext('2d');
+    let pts = [];
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    function resizeCvs() { cvs.width = innerWidth; cvs.height = innerHeight; }
+    resizeCvs();
+    addEventListener('resize', resizeCvs);
 
-    function spawnParticle() {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: canvas.height + 4,
-        size: Math.random() < 0.5 ? 2 : 4,
-        speed: 0.3 + Math.random() * 0.6,
+    // Two particle colors: pink and purple
+    const pColors = ['rgba(233,30,140,', 'rgba(156,39,176,', 'rgba(244,114,182,'];
+
+    function spawnPt() {
+      pts.push({
+        x: Math.floor(Math.random() * (innerWidth / 4)) * 4,
+        y: innerHeight + 4,
+        size: [2, 4, 4, 6][Math.floor(Math.random() * 4)],
+        speed: 0.3 + Math.random() * 0.5,
         opacity: 0.1 + Math.random() * 0.4,
+        color: pColors[Math.floor(Math.random() * pColors.length)],
       });
     }
 
-    function drawParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles = particles.filter(p => p.y > -10);
-      particles.forEach(p => {
+    function drawPts() {
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      pts = pts.filter(p => p.y > -10);
+      pts.forEach(p => {
         p.y -= p.speed;
-        ctx.fillStyle = `rgba(34,197,94,${p.opacity})`;
+        ctx.fillStyle = p.color + p.opacity + ')';
         ctx.fillRect(p.x, p.y, p.size, p.size);
       });
-      requestAnimationFrame(drawParticles);
+      requestAnimationFrame(drawPts);
     }
-    drawParticles();
-    setInterval(spawnParticle, 300);
+    drawPts();
+    setInterval(spawnPt, 250);
 
-    // ── GSAP Intro animations ────────────────────────────────────────────────
+    // ── GSAP intro ────────────────────────────────────────────────────────────
     gsap.registerPlugin(TextPlugin);
 
-    const tl = gsap.timeline({ delay: 0.2 });
+    gsap.timeline({ delay: 0.2 })
+      .from('#header',  { opacity: 0, y: -24, duration: 0.5, ease: 'power2.out' })
+      .from('#divider', { scaleX: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2')
+      .from('#card',    { opacity: 0, y: 24, duration: 0.5, ease: 'power2.out' }, '-=0.1')
+      .from('.footer',  { opacity: 0, duration: 0.4 });
 
-    tl.from('#header', { opacity: 0, y: -20, duration: 0.5, ease: 'power2.out' })
-      .from('#sys-divider', { scaleX: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2')
-      .from('#card', { opacity: 0, y: 20, duration: 0.5, ease: 'power2.out' }, '-=0.1')
-      .from('#footer', { opacity: 0, duration: 0.4 });
-
-    // ── Equalizer GSAP animation ──────────────────────────────────────────────
-    let eqTimelines = [];
-    const eqBars = ['b1','b2','b3','b4','b5','b6','b7'];
-    const eqHeights = [
-      [4, 18, 6, 24, 8, 16, 4],
-      [10, 4, 22, 8, 20, 4, 12],
-      [16, 24, 6, 18, 4, 22, 10],
-      [6, 14, 26, 4, 18, 8, 20],
-      [22, 6, 12, 20, 4, 16, 8],
-      [8, 20, 4, 14, 24, 6, 18],
-      [14, 8, 18, 6, 22, 12, 4],
+    // ── Equalizer GSAP ────────────────────────────────────────────────────────
+    let eqTls = [];
+    const eqIds = ['b1','b2','b3','b4','b5','b6','b7','b8'];
+    const eqSeqs = [
+      [3,16,6,20,8,14,3], [8,3,18,5,14,3,10],
+      [14,20,5,16,3,18,8], [5,10,22,3,14,6,16],
+      [20,5,14,3,18,6,20], [6,18,3,12,20,3,14],
+      [11,3,18,6,14,3,11], [16,8,3,20,6,12,16],
     ];
 
-    function startEqualizer() {
-      stopEqualizer();
-      eqBars.forEach((id, i) => {
+    function startEQ() {
+      stopEQ();
+      eqIds.forEach((id, i) => {
         const el = document.getElementById(id);
         if (!el) return;
-        const heights = eqHeights[i % eqHeights.length];
+        const seq = eqSeqs[i % eqSeqs.length];
         const t = gsap.timeline({ repeat: -1 });
-        heights.forEach((h, j) => {
-          t.to(el, {
-            height: h,
-            duration: 0.12 + Math.random() * 0.08,
-            ease: 'none',
-          }, j === 0 ? 0 : '+=0');
+        seq.forEach(h => {
+          t.to(el, { height: h, duration: 0.09 + Math.random() * 0.06, ease: 'none' });
         });
-        t.timeScale(0.85 + Math.random() * 0.3);
-        eqTimelines.push(t);
+        t.timeScale(0.8 + Math.random() * 0.4);
+        eqTls.push(t);
       });
     }
 
-    function stopEqualizer() {
-      eqTimelines.forEach(t => t.kill());
-      eqTimelines = [];
-      eqBars.forEach(id => {
+    function stopEQ() {
+      eqTls.forEach(t => t.kill());
+      eqTls = [];
+      eqIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) gsap.to(el, { height: 3, duration: 0.3 });
       });
     }
 
-    // ── Progress bar pixels ───────────────────────────────────────────────────
-    const TOTAL_BLOCKS = 32;
-    const progBar = document.getElementById('prog-bar');
+    // ── Progress bar ──────────────────────────────────────────────────────────
+    const BLOCKS = 36;
+    const track = document.getElementById('prog-track');
 
-    function initProgressBar() {
-      progBar.innerHTML = '';
-      for (let i = 0; i < TOTAL_BLOCKS; i++) {
+    function initProg() {
+      track.innerHTML = '';
+      for (let i = 0; i < BLOCKS; i++) {
         const b = document.createElement('div');
-        b.className = 'px-block';
-        b.id = `pb${i}`;
-        progBar.appendChild(b);
+        b.className = 'prog-px';
+        b.id = 'pp' + i;
+        track.appendChild(b);
       }
     }
-    initProgressBar();
+    initProg();
 
-    function updateProgressBar(pct) {
-      const filled = Math.round(pct * TOTAL_BLOCKS);
-      for (let i = 0; i < TOTAL_BLOCKS; i++) {
-        const el = document.getElementById(`pb${i}`);
+    function setProg(pct) {
+      const filled = Math.round(pct * BLOCKS);
+      for (let i = 0; i < BLOCKS; i++) {
+        const el = document.getElementById('pp' + i);
         if (!el) continue;
-        const shouldFill = i < filled;
-        if (shouldFill && !el.classList.contains('filled')) {
-          el.classList.add('filled');
-        } else if (!shouldFill && el.classList.contains('filled')) {
-          el.classList.remove('filled');
-        }
+        const f = i < filled;
+        el.classList.toggle('filled', f);
       }
     }
 
-    // ── Time formatting ────────────────────────────────────────────────────────
     function fmt(ms) {
       const s = Math.floor(ms / 1000);
       return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     }
 
-    // ── State ─────────────────────────────────────────────────────────────────
+    // ── State & tick ──────────────────────────────────────────────────────────
     let progress = 0, duration = 0, isPlaying = false, ticker = null;
 
-    function startTicker() {
-      stopTicker();
+    function startTick() {
+      stopTick();
       ticker = setInterval(() => {
         if (isPlaying) {
           progress = Math.min(progress + 1000, duration);
-          updateProgressBar(duration > 0 ? progress / duration : 0);
+          setProg(duration > 0 ? progress / duration : 0);
           document.getElementById('t-cur').textContent = fmt(progress);
         }
       }, 1000);
     }
 
-    function stopTicker() {
-      if (ticker) { clearInterval(ticker); ticker = null; }
-    }
+    function stopTick() { if (ticker) { clearInterval(ticker); ticker = null; } }
 
     // ── Render ────────────────────────────────────────────────────────────────
     function render(data) {
       if (data.error === 'not_authenticated') {
         document.getElementById('auth-box').style.display = 'block';
         document.getElementById('embed-section').style.display = 'none';
-        document.getElementById('sdot').className = 'status-dot off';
-        document.getElementById('slabel').className = 'status-label off';
+        document.getElementById('led').className = 'led';
+        document.getElementById('slabel').className = 'status-label';
         document.getElementById('slabel').textContent = 'NOT CONNECTED';
-        stopEqualizer();
+        stopEQ(); stopTick();
         return;
       }
 
@@ -721,106 +725,87 @@
       document.getElementById('embed-section').style.display = 'block';
 
       isPlaying = data.isPlaying;
-      progress = data.progress || 0;
-      duration = data.duration || 0;
+      progress  = data.progress || 0;
+      duration  = data.duration || 0;
 
-      const card = document.getElementById('card');
-      const dot = document.getElementById('sdot');
+      const card  = document.getElementById('card');
+      const led   = document.getElementById('led');
       const label = document.getElementById('slabel');
 
       if (isPlaying) {
         card.classList.add('playing');
-        dot.className = 'status-dot';
-        label.className = 'status-label';
+        led.className = 'led on';
+        label.className = 'status-label on';
         label.textContent = 'NOW PLAYING';
-        startEqualizer();
-        startTicker();
+        startEQ(); startTick();
       } else {
         card.classList.remove('playing');
-        dot.className = 'status-dot off';
-        label.className = 'status-label off';
+        led.className = 'led';
+        label.className = 'status-label';
         label.textContent = data.title ? 'PAUSED' : 'NOTHING PLAYING';
-        stopEqualizer();
-        stopTicker();
+        stopEQ(); stopTick();
       }
 
-      // Title + artist with GSAP text scramble effect
-      const titleEl = document.getElementById('s-title');
+      const titleEl  = document.getElementById('s-title');
       const artistEl = document.getElementById('s-artist');
-      const newTitle = (data.title || '---').toUpperCase();
-      const newArtist = (data.artist || '---').toUpperCase();
+      const newT = (data.title  || '---').toUpperCase();
+      const newA = (data.artist || '---').toUpperCase();
 
-      if (titleEl.textContent !== newTitle) {
-        gsap.to(titleEl, { opacity: 0, duration: 0.15, onComplete: () => {
-          titleEl.textContent = newTitle;
+      if (titleEl.textContent !== newT) {
+        gsap.to(titleEl, { opacity: 0, duration: 0.12, onComplete: () => {
+          titleEl.textContent = newT;
           gsap.to(titleEl, { opacity: 1, duration: 0.15 });
         }});
       }
-
-      if (artistEl.textContent !== newArtist) {
-        gsap.to(artistEl, { opacity: 0, duration: 0.15, onComplete: () => {
-          artistEl.textContent = newArtist;
+      if (artistEl.textContent !== newA) {
+        gsap.to(artistEl, { opacity: 0, duration: 0.12, onComplete: () => {
+          artistEl.textContent = newA;
           gsap.to(artistEl, { opacity: 1, duration: 0.15 });
         }});
       }
 
-      // Album art
       const img = document.getElementById('art-img');
-      const placeholder = document.getElementById('art-placeholder');
+      const ph  = document.getElementById('art-ph');
       if (data.albumArt) {
         if (img.src !== data.albumArt) {
           gsap.to(img, { opacity: 0, duration: 0.2, onComplete: () => {
             img.src = data.albumArt;
             img.style.display = 'block';
-            placeholder.style.display = 'none';
-            gsap.to(img, { opacity: 1, duration: 0.3 });
+            ph.style.display  = 'none';
+            gsap.to(img, { opacity: 1, duration: 0.25 });
           }});
         }
       } else {
         img.style.display = 'none';
-        placeholder.style.display = 'flex';
+        ph.style.display  = 'flex';
       }
 
-      // Spotify link
       const link = document.getElementById('s-link');
-      if (data.songUrl) {
-        link.href = data.songUrl;
-        link.style.display = 'inline-flex';
-      } else {
-        link.style.display = 'none';
-      }
+      if (data.songUrl) { link.href = data.songUrl; link.style.display = 'inline-flex'; }
+      else link.style.display = 'none';
 
-      // Progress + time
-      updateProgressBar(duration > 0 ? progress / duration : 0);
+      setProg(duration > 0 ? progress / duration : 0);
       document.getElementById('t-cur').textContent = fmt(progress);
       document.getElementById('t-dur').textContent = fmt(duration);
 
-      // Embed code
       const origin = window.location.origin;
       document.getElementById('embed-code').textContent =
         `[![Now Playing](${origin}/api/now-playing/svg)](${origin})`;
     }
 
-    // ── Copy embed code ───────────────────────────────────────────────────────
     function copyEmbed(el) {
       navigator.clipboard.writeText(el.textContent).then(() => {
-        gsap.to(el, { borderColor: '#22c55e', color: '#e6edf3', duration: 0.1, yoyo: true, repeat: 1 });
+        gsap.fromTo(el, { borderColor: '#e91e8c' }, { borderColor: '#3d2a50', duration: 1 });
       });
     }
 
-    // ── SSE connection ────────────────────────────────────────────────────────
-    function connectSSE() {
+    // ── SSE ───────────────────────────────────────────────────────────────────
+    function connect() {
       const es = new EventSource('/api/stream');
-      es.onmessage = e => {
-        try { render(JSON.parse(e.data)); } catch {}
-      };
-      es.onerror = () => {
-        es.close();
-        setTimeout(connectSSE, 5000);
-      };
+      es.onmessage = e => { try { render(JSON.parse(e.data)); } catch {} };
+      es.onerror   = () => { es.close(); setTimeout(connect, 5000); };
     }
-
-    connectSSE();
+    connect();
   </script>
 </body>
 </html>

@@ -218,119 +218,150 @@ function progressPixels(pct, x, y, w, h) {
   const gap = 2;
   const total = Math.floor(w / (blockW + gap));
   const filled = Math.round(pct * total);
-  return Array.from({ length: total }, (_, i) =>
-    `<rect x="${x + i * (blockW + gap)}" y="${y}" width="${blockW}" height="${h}" fill="${i < filled ? '#22c55e' : '#21262d'}"/>`
-  ).join('');
+  return Array.from({ length: total }, (_, i) => {
+    const ratio = i / total;
+    const fill = i < filled
+      ? (ratio < 0.5 ? '#e91e8c' : '#9c27b0')
+      : '#1a0a2e';
+    return `<rect x="${x + i * (blockW + gap)}" y="${y}" width="${blockW}" height="${h}" fill="${fill}"/>`;
+  }).join('');
 }
 
 function buildPixelSVG(data, artBase64) {
-  const { isPlaying = false, title, artist, duration = 0, progress = 0, songUrl } = data;
+  const { isPlaying = false, title, artist, duration = 0, progress = 0 } = data;
 
-  const W = 480, H = 130;
-  const displayTitle = escX(truncate(title || 'NOTHING PLAYING', 32));
-  const displayArtist = escX(truncate(artist || '', 38));
+  const W = 490, H = 136;
+  const displayTitle  = escX(truncate(title  || 'NOTHING PLAYING', 30));
+  const displayArtist = escX(truncate(artist || '',                36));
   const pct = duration > 0 ? Math.min(progress / duration, 1) : 0;
 
-  const fmtTime = (ms) => {
+  const fmtTime = ms => {
     const s = Math.floor(ms / 1000);
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   };
 
-  // Album art area
-  const artSize = 90;
-  const artX = 16, artY = 20;
-  const artSection = artBase64
-    ? `<image href="${artBase64}" x="${artX + 1}" y="${artY + 1}" width="${artSize - 2}" height="${artSize - 2}" style="image-rendering:pixelated"/>`
-    : `<rect x="${artX + 1}" y="${artY + 1}" width="${artSize - 2}" height="${artSize - 2}" fill="#161b22"/>
-       <rect x="${artX + 32}" y="${artY + 28}" width="28" height="4" fill="#22c55e" opacity="0.6"/>
-       <rect x="${artX + 32}" y="${artY + 38}" width="28" height="4" fill="#22c55e" opacity="0.4"/>
-       <rect x="${artX + 32}" y="${artY + 48}" width="20" height="4" fill="#22c55e" opacity="0.3"/>`;
+  // Palette
+  const PINK    = '#e91e8c';
+  const PINK_D  = '#e91e8c55';
+  const PURPLE  = '#9c27b0';
+  const DARK    = '#0d0014';
+  const SURFACE = '#1a0a2e';
+  const MUTED   = '#c084fc';
+  const DEAD    = '#3d2a50';
 
-  // Corner pixel accents (4×4 squares at each corner of album art)
-  const corners = [
+  // Album art
+  const artX = 16, artY = 18, artSize = 96;
+  const artSection = artBase64
+    ? `<image href="${artBase64}" x="${artX}" y="${artY}" width="${artSize}" height="${artSize}" style="image-rendering:pixelated" clip-path="url(#aclip)"/>`
+    : `<rect x="${artX}" y="${artY}" width="${artSize}" height="${artSize}" fill="${SURFACE}"/>
+       <rect x="${artX + 34}" y="${artY + 30}" width="30" height="4" fill="${PINK}" opacity="0.5"/>
+       <rect x="${artX + 34}" y="${artY + 40}" width="24" height="4" fill="${PINK}" opacity="0.35"/>
+       <rect x="${artX + 34}" y="${artY + 50}" width="18" height="4" fill="${PINK}" opacity="0.2"/>`;
+
+  // Art corner squares
+  const artCorners = [
     [artX - 2, artY - 2], [artX + artSize - 2, artY - 2],
     [artX - 2, artY + artSize - 2], [artX + artSize - 2, artY + artSize - 2],
-  ].map(([cx, cy]) => `<rect x="${cx}" y="${cy}" width="4" height="4" fill="#22c55e"/>`).join('');
+  ].map(([cx, cy]) => `<rect x="${cx}" y="${cy}" width="5" height="5" fill="${PINK}"/>`).join('');
 
-  // Progress pixels
-  const progX = 120, progY = 96, progW = 280;
-  const progPixels = progressPixels(pct, progX, progY, progW, 5);
+  // Progress pixel blocks
+  const progX = 124, progY = 100, progW = 288;
+  const progPixels = progressPixels(pct, progX, progY, progW, 6);
 
-  // Equalizer bars (right-aligned)
-  const eqX = 418, eqY = 100;
+  // Equalizer bars
+  const eqX = 430, eqY = 112;
   const eq = eqBars(eqX, eqY, isPlaying);
 
-  // Blinking REC indicator
-  const recIndicator = isPlaying ? `
-    <rect x="${W - 22}" y="10" width="5" height="5" fill="#22c55e">
-      <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
-    </rect>
-    <text x="${W - 15}" y="17" font-family="'Courier New',monospace" font-size="7" fill="#22c55e" font-weight="bold" letter-spacing="0.5">REC</text>
-  ` : `<rect x="${W - 22}" y="10" width="5" height="5" fill="#484f58"/>
-    <text x="${W - 15}" y="17" font-family="'Courier New',monospace" font-size="7" fill="#484f58" letter-spacing="0.5">OFF</text>`;
+  // LED REC indicator (2×2 grid of squares)
+  const recX = W - 60, recY = 10;
+  const recBlock = isPlaying
+    ? `<rect x="${recX}" y="${recY}" width="5" height="5" fill="${PINK}">
+         <animate attributeName="opacity" values="1;0.2;1" dur="0.9s" repeatCount="indefinite"/>
+       </rect>
+       <rect x="${recX + 6}" y="${recY}" width="5" height="5" fill="${PINK}">
+         <animate attributeName="opacity" values="0.2;1;0.2" dur="0.9s" repeatCount="indefinite"/>
+       </rect>
+       <text x="${recX + 14}" y="${recY + 8}" font-family="'Courier New',monospace" font-size="7" fill="${PINK}" letter-spacing="0.5">REC</text>`
+    : `<rect x="${recX}" y="${recY}" width="5" height="5" fill="${DEAD}"/>
+       <rect x="${recX + 6}" y="${recY}" width="5" height="5" fill="${DEAD}"/>
+       <text x="${recX + 14}" y="${recY + 8}" font-family="'Courier New',monospace" font-size="7" fill="${DEAD}" letter-spacing="0.5">OFF</text>`;
 
-  // Scanline overlay (subtle horizontal lines across the whole card)
-  const scanlines = Array.from({ length: Math.floor(H / 3) }, (_, i) =>
-    `<line x1="0" y1="${i * 3 + 1}" x2="${W}" y2="${i * 3 + 1}" stroke="#000" stroke-width="1" opacity="0.08"/>`
+  // Scanlines
+  const scanlines = Array.from({ length: Math.floor(H / 4) }, (_, i) =>
+    `<line x1="0" y1="${i * 4 + 2}" x2="${W}" y2="${i * 4 + 2}" stroke="#000" stroke-width="1" opacity="0.07"/>`
   ).join('');
 
+  // Pixel grid background (10×10 cells to match pixel art reference)
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
-    <pattern id="pg" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
-      <rect width="6" height="6" fill="#0d1117"/>
-      <rect width="1" height="1" fill="#161b22"/>
+    <pattern id="pg" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect width="10" height="10" fill="${DARK}"/>
+      <rect width="1" height="1" fill="${SURFACE}"/>
     </pattern>
-    <clipPath id="art-clip">
-      <rect x="${artX + 1}" y="${artY + 1}" width="${artSize - 2}" height="${artSize - 2}"/>
+    <linearGradient id="pinkgrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${PINK}"/>
+      <stop offset="100%" stop-color="${PURPLE}"/>
+    </linearGradient>
+    <linearGradient id="bggrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#200030" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="${DARK}" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="aclip">
+      <rect x="${artX}" y="${artY}" width="${artSize}" height="${artSize}"/>
     </clipPath>
   </defs>
 
-  <!-- Background grid -->
+  <!-- Pixel grid bg -->
   <rect width="${W}" height="${H}" fill="url(#pg)"/>
+  <rect width="${W}" height="${H}" fill="url(#bggrad)"/>
 
   <!-- Outer border -->
-  <rect x="1" y="1" width="${W - 2}" height="${H - 2}" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.25"/>
+  <rect x="1" y="1" width="${W - 2}" height="${H - 2}" fill="none" stroke="url(#pinkgrad)" stroke-width="1" opacity="0.35"/>
 
-  <!-- Card corner accents -->
-  <rect x="0" y="0" width="5" height="5" fill="#22c55e"/>
-  <rect x="${W - 5}" y="0" width="5" height="5" fill="#22c55e"/>
-  <rect x="0" y="${H - 5}" width="5" height="5" fill="#22c55e"/>
-  <rect x="${W - 5}" y="${H - 5}" width="5" height="5" fill="#22c55e"/>
-
-  <!-- REC indicator -->
-  ${recIndicator}
-
-  <!-- Album art border -->
-  <rect x="${artX}" y="${artY}" width="${artSize}" height="${artSize}" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.5"/>
-  ${artSection}
-  ${corners}
-
-  <!-- Separator line -->
-  <line x1="118" y1="${artY}" x2="118" y2="${artY + artSize}" stroke="#22c55e" stroke-width="1" opacity="0.1"/>
+  <!-- Corner squares (card) -->
+  <rect x="0"       y="0"       width="6" height="6" fill="${PINK}"/>
+  <rect x="${W - 6}" y="0"       width="6" height="6" fill="${PINK}"/>
+  <rect x="0"       y="${H - 6}" width="6" height="6" fill="${PINK}"/>
+  <rect x="${W - 6}" y="${H - 6}" width="6" height="6" fill="${PINK}"/>
 
   <!-- Status label -->
-  <text x="126" y="${artY + 13}" font-family="'Courier New',monospace" font-size="8" fill="${isPlaying ? '#22c55e' : '#484f58'}" letter-spacing="2" font-weight="bold">${isPlaying ? 'NOW PLAYING' : 'NOT PLAYING'}</text>
+  <text x="16" y="13" font-family="'Courier New',monospace" font-size="7" fill="${isPlaying ? PINK : DEAD}" letter-spacing="2" font-weight="bold">${isPlaying ? 'NOW PLAYING' : 'NOTHING PLAYING'}</text>
 
-  <!-- Title -->
-  <text x="126" y="${artY + 34}" font-family="'Courier New',monospace" font-size="13" fill="#e6edf3" font-weight="bold" letter-spacing="0.5">${displayTitle}</text>
+  <!-- REC indicator -->
+  ${recBlock}
 
-  <!-- Artist -->
-  <text x="126" y="${artY + 52}" font-family="'Courier New',monospace" font-size="10" fill="#8b949e" letter-spacing="0.5">${displayArtist}</text>
+  <!-- Pink divider line under header -->
+  <line x1="16" y1="16" x2="${W - 16}" y2="16" stroke="url(#pinkgrad)" stroke-width="1" opacity="0.3"/>
 
-  <!-- Equalizer bars -->
+  <!-- Album art border -->
+  <rect x="${artX - 1}" y="${artY - 1}" width="${artSize + 2}" height="${artSize + 2}" fill="none" stroke="${PINK}" stroke-width="1" opacity="0.5"/>
+  ${artSection}
+  ${artCorners}
+
+  <!-- Art grid overlay (pixel art look) -->
+  <rect x="${artX}" y="${artY}" width="${artSize}" height="${artSize}" fill="none"
+    style="background-image: repeating-linear-gradient(#fff1 1px, transparent 1px)" opacity="0.04"/>
+
+  <!-- Info: title -->
+  <text x="126" y="${artY + 18}" font-family="'Courier New',monospace" font-size="12" fill="#f8e8ff" font-weight="bold" letter-spacing="0.5">${displayTitle}</text>
+
+  <!-- Info: artist -->
+  <text x="126" y="${artY + 36}" font-family="'Courier New',monospace" font-size="9" fill="${MUTED}" letter-spacing="0.5">${displayArtist}</text>
+
+  <!-- Pink accent bar under artist -->
+  <rect x="126" y="${artY + 42}" width="80" height="2" fill="url(#pinkgrad)" opacity="0.5"/>
+
+  <!-- Equalizer -->
   ${eq}
 
-  <!-- Progress block bar -->
+  <!-- Progress pixel bar -->
   ${progPixels}
 
   <!-- Time labels -->
-  <text x="${progX}" y="${H - 8}" font-family="'Courier New',monospace" font-size="8" fill="#484f58">${fmtTime(progress)}</text>
-  <text x="${progX + progW}" y="${H - 8}" font-family="'Courier New',monospace" font-size="8" fill="#484f58" text-anchor="end">${fmtTime(duration)}</text>
+  <text x="${progX}" y="${H - 8}" font-family="'Courier New',monospace" font-size="8" fill="${DEAD}">${fmtTime(progress)}</text>
+  <text x="${progX + progW}" y="${H - 8}" font-family="'Courier New',monospace" font-size="8" fill="${DEAD}" text-anchor="end">${fmtTime(duration)}</text>
 
-  <!-- Bottom pixel border line -->
-  <line x1="5" y1="${H - 1}" x2="${W - 5}" y2="${H - 1}" stroke="#22c55e" stroke-width="1" opacity="0.15"/>
-
-  <!-- Scanlines overlay -->
+  <!-- Scanlines -->
   ${scanlines}
 </svg>`;
 }
