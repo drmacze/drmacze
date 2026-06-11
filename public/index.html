@@ -37,11 +37,36 @@
       overflow-x: hidden;
     }
 
-    /* ── WebGL canvas ─────────────────────────────────────── */
+    /* ── Fire background canvas – CSS pixel art shows in screenshots;
+          2-D canvas Doom fire overlays in real browsers               ── */
     #glc {
       position: fixed; inset: 0;
       width: 100%; height: 100%;
       z-index: 0; pointer-events: none;
+      /* CSS pixel grid seams (14 px cells, 1.5 px gap) */
+      background-image:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px, transparent 12.5px,
+          rgba(0,0,0,0.80) 12.5px, rgba(0,0,0,0.80) 14px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          transparent 0px, transparent 12.5px,
+          rgba(0,0,0,0.80) 12.5px, rgba(0,0,0,0.80) 14px
+        ),
+        /* fire gradient: yellow → orange → deep red → black */
+        linear-gradient(
+          0deg,
+          #FFD700   0%,
+          #FF6600  18%,
+          #CC2200  38%,
+          #771100  55%,
+          #331100  70%,
+          #0d0200  85%,
+          #060100 100%
+        );
+      background-size: 14px 14px, 14px 14px, 100% 100%;
     }
 
     /* ── Scanlines ────────────────────────────────────────── */
@@ -54,15 +79,8 @@
       pointer-events: none; z-index: 997;
     }
 
-    /* ── Pixel grid bg overlay ────────────────────────────── */
-    #pgrid {
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(255,102,0,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,102,0,0.03) 1px, transparent 1px);
-      background-size: 8px 8px;
-      pointer-events: none; z-index: 0;
-    }
+    /* ── Pixel grid bg overlay (now handled by #glc CSS) ─── */
+    #pgrid { display: none; }
 
     /* ── Fire pixel bar (bottom) ──────────────────────────── */
     #firebar {
@@ -95,6 +113,18 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 28px; padding: 80px 24px 200px;
+    }
+    /* dark radial vignette behind card — keeps text readable over fire bg */
+    .page::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(
+        ellipse 70% 65% at 50% 42%,
+        rgba(6,1,0,0.78) 0%,
+        rgba(6,1,0,0.45) 50%,
+        transparent 100%
+      );
+      pointer-events: none; z-index: -1;
     }
 
     /* ── Header ───────────────────────────────────────────── */
@@ -336,26 +366,8 @@
     /* ── Footer ───────────────────────────────────────────── */
     .footer { font-size: 6px; color: var(--dead); letter-spacing: 3px; }
 
-    /* ── Fire bar CSS fallback — pixel columns + fire gradient ── */
-    #firebar {
-      height: 220px !important;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          transparent 0px, transparent 9px,
-          rgba(0,0,0,0.55) 9px, rgba(0,0,0,0.55) 10px
-        ),
-        repeating-linear-gradient(
-          0deg,
-          transparent 0px, transparent 9px,
-          rgba(0,0,0,0.35) 9px, rgba(0,0,0,0.35) 10px
-        ),
-        linear-gradient(
-          0deg,
-          #FFD700 0%, #FF6600 22%, #CC2200 48%, #771100 70%, #220800 88%, transparent 100%
-        );
-      image-rendering: pixelated;
-    }
+    /* ── Fire bar height lock (JS canvas draws pixel blocks on top) ── */
+    #firebar { height: 220px !important; }
 
     /* ── Pixel art "not connected" message ────────────────── */
     .not-cfg {
@@ -504,127 +516,99 @@ const lenis = new Lenis({
 
 
 // ═══════════════════════════════════════════════════════════════
-// WEBGL FIRE MESH GRADIENT BACKGROUND
+// 2-D CANVAS  DOOM-STYLE PIXEL ART FIRE BACKGROUND
 // ═══════════════════════════════════════════════════════════════
-(function initGL() {
+(function initFireBG() {
   const cvs = document.getElementById('glc');
-  const gl  = cvs.getContext('webgl') || cvs.getContext('experimental-webgl');
-  if (!gl) { cvs.style.display = 'none'; return; }
+  const ctx = cvs.getContext('2d');
+  if (!ctx) { cvs.style.display = 'none'; return; }
 
-  const resize = () => {
-    cvs.width  = window.innerWidth;
-    cvs.height = window.innerHeight;
-    gl.viewport(0, 0, cvs.width, cvs.height);
+  /* ── palette: index 0 = black, 9 = yellow ── */
+  const PAL = [
+    '#060100','#220300','#440700','#771100',
+    '#991100','#CC2200','#FF4400','#FF6600',
+    '#FF9900','#FFD700'
+  ];
+  const NPAL = PAL.length;   /* 10 */
+  const CELL = 14;           /* px per grid cell */
+  const GAP  = 1;            /* seam width */
+  /* how many cols/rows of cells fill the viewport */
+  const getW = () => Math.max(window.innerWidth  || 0,
+    document.documentElement.clientWidth  || 0, screen.width  || 0, 320);
+  const getH = () => Math.max(window.innerHeight || 0,
+    document.documentElement.clientHeight || 0, screen.height || 0, 240);
+
+  let COLS, ROWS, grid, nxtGrid;
+
+  const init = () => {
+    const W = getW(), H = getH();
+    cvs.width  = W;
+    cvs.height = H;
+    COLS = Math.ceil(W / CELL) + 1;
+    ROWS = Math.ceil(H / CELL) + 2;   /* extra rows below screen */
+    grid    = new Uint8Array(COLS * ROWS);
+    nxtGrid = new Uint8Array(COLS * ROWS);
+    /* seed: bottom two rows are max heat */
+    for (let c = 0; c < COLS; c++) {
+      grid[(ROWS - 1) * COLS + c] = NPAL - 1;
+      grid[(ROWS - 2) * COLS + c] = NPAL - 1;
+    }
   };
-  resize();
-  window.addEventListener('resize', resize);
 
-  /* ── shaders ── */
-  const VS = `
-    attribute vec2 a_pos;
-    void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
-  `;
-
-  const FS = `
-    precision highp float;
-    uniform float u_t;
-    uniform vec2  u_res;
-
-    float hash21(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-    }
-    float noise(vec2 p) {
-      vec2 i = floor(p), f = fract(p);
-      f = f * f * (3.0 - 2.0 * f);
-      float a = hash21(i),
-            b = hash21(i + vec2(1,0)),
-            c = hash21(i + vec2(0,1)),
-            d = hash21(i + vec2(1,1));
-      return mix(mix(a,b,f.x), mix(c,d,f.x), f.y);
-    }
-    float fbm(vec2 p) {
-      float v = 0.0, amp = 0.5;
-      for (int i = 0; i < 6; i++) {
-        v   += noise(p) * amp;
-        p   *= 2.1;
-        amp *= 0.48;
+  /* classic Doom fire propagation */
+  const spread = () => {
+    nxtGrid.set(grid);
+    for (let r = 0; r < ROWS - 1; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const below = grid[(r + 1) * COLS + c];
+        /* random sideways drift ±1, decay 0-1 */
+        const wind  = (Math.random() * 3 | 0) - 1;  /* -1, 0, or 1 */
+        const decay = Math.random() < 0.55 ? 1 : 0;
+        const nc    = Math.max(0, Math.min(COLS - 1, c + wind));
+        nxtGrid[r * COLS + nc] = Math.max(0, below - decay);
       }
-      return v;
     }
-
-    /* fire palette */
-    vec3 firePalette(float t) {
-      t = clamp(t, 0.0, 1.0);
-      vec3 a = vec3(0.0,0.0,0.0);
-      vec3 b = vec3(0.47,0.02,0.0);
-      vec3 c = vec3(0.8, 0.13,0.0);
-      vec3 d = vec3(1.0, 0.4, 0.0);
-      vec3 e = vec3(1.0, 0.84,0.0);
-      if (t < 0.25) return mix(a, b, t / 0.25);
-      if (t < 0.5)  return mix(b, c, (t-0.25)/0.25);
-      if (t < 0.75) return mix(c, d, (t-0.5) /0.25);
-                    return mix(d, e, (t-0.75)/0.25);
-    }
-
-    void main() {
-      vec2 uv = gl_FragCoord.xy / u_res;
-
-      /* mesh gradient – 4 fire "emitters" that drift */
-      vec2 p0 = vec2(0.2 + 0.15*sin(u_t*0.31), 0.2 + 0.1*cos(u_t*0.19));
-      vec2 p1 = vec2(0.8 + 0.12*cos(u_t*0.27), 0.15+ 0.12*sin(u_t*0.23));
-      vec2 p2 = vec2(0.5 + 0.1 *sin(u_t*0.17), 0.75+ 0.08*cos(u_t*0.29));
-      vec2 p3 = vec2(0.15+ 0.1 *cos(u_t*0.22), 0.6 + 0.1 *sin(u_t*0.13));
-
-      float d0 = 1.0 - clamp(length(uv-p0)*2.0,0.0,1.0);
-      float d1 = 1.0 - clamp(length(uv-p1)*2.2,0.0,1.0);
-      float d2 = 1.0 - clamp(length(uv-p2)*2.5,0.0,1.0);
-      float d3 = 1.0 - clamp(length(uv-p3)*2.0,0.0,1.0);
-      float mesh = (d0 + d1*0.8 + d2*0.6 + d3*0.7) * 0.55;
-
-      /* turbulence layer */
-      vec2 tp = vec2(uv.x*3.5, (1.0-uv.y)*2.5 - u_t*0.25);
-      float turb = fbm(tp + vec2(sin(u_t*0.18)*0.3, 0.0));
-      float fire = clamp(turb * 1.3 - (1.0-uv.y) * 0.9, 0.0, 1.0);
-
-      /* combine */
-      float v = max(mesh * 0.7, fire * 0.5);
-
-      /* top fade – keep top dark */
-      v *= smoothstep(1.0, 0.3, uv.y) * 0.22;
-
-      vec3 col = firePalette(v * 3.0);
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `;
-
-  const mkS = (type, src) => {
-    const s = gl.createShader(type);
-    gl.shaderSource(s, src); gl.compileShader(s);
-    return s;
+    const tmp = grid; grid = nxtGrid; nxtGrid = tmp;
   };
-  const prog = gl.createProgram();
-  gl.attachShader(prog, mkS(gl.VERTEX_SHADER, VS));
-  gl.attachShader(prog, mkS(gl.FRAGMENT_SHADER, FS));
-  gl.linkProgram(prog); gl.useProgram(prog);
 
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER,
-    new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
-  const aloc = gl.getAttribLocation(prog, 'a_pos');
-  gl.enableVertexAttribArray(aloc);
-  gl.vertexAttribPointer(aloc, 2, gl.FLOAT, false, 0, 0);
+  const draw = () => {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    /* draw cells */
+    for (let r = 0; r < ROWS - 2; r++) {          /* skip the invisible bottom rows */
+      /* y from top of canvas */
+      const y   = r * CELL;
+      /* screen fraction 0(top)→1(bottom) — used to dim upper cells */
+      const yF  = r / (ROWS - 2);
+      /* opacity: dim at top, full at bottom – keeps card readable */
+      const opa = Math.min(1, 0.18 + 0.82 * yF * yF);
+      for (let c = 0; c < COLS; c++) {
+        const t = grid[r * COLS + c];
+        if (t === 0) continue;                     /* skip black cells (transparent) */
+        const x = c * CELL;
+        ctx.globalAlpha = opa;
+        ctx.fillStyle   = PAL[t];
+        ctx.fillRect(x, y, CELL - GAP, CELL - GAP);
+      }
+    }
+    ctx.globalAlpha = 1;
+  };
 
-  const uT   = gl.getUniformLocation(prog, 'u_t');
-  const uRes = gl.getUniformLocation(prog, 'u_res');
-  const t0   = performance.now();
+  /* draw a first frame synchronously so it shows even before rAF */
+  init();
+  /* warm up: run 40 spread passes so fire reaches the top on load */
+  for (let i = 0; i < 40; i++) spread();
+  draw();
 
-  (function loop(now) {
-    gl.uniform1f(uT, (now - t0) / 1000);
-    gl.uniform2f(uRes, cvs.width, cvs.height);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  window.addEventListener('resize', () => { init(); });
+
+  let frame = 0;
+  (function loop() {
+    frame++;
+    /* spread every 2nd frame to slow the rise slightly */
+    if (frame % 2 === 0) spread();
+    draw();
     requestAnimationFrame(loop);
-  })(t0);
+  })();
 })();
 
 
