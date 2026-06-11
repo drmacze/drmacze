@@ -70,10 +70,11 @@
 <!-- PINNED-PROJECTS:START -->
 | repo | lang | desc |
 |------|------|------|
-| [AISOURCE](https://github.com/drmacze/AISOURCE) | `TypeScript` | AI Command Center — local LLM, RAG, fine-tuning |
-| [DlavieOS](https://github.com/drmacze/DlavieOS) | `TypeScript` | DLavie OS — full AI workspace |
+| [AISOURCE](https://github.com/drmacze/AISOURCE) | `TypeScript` | — |
+| [DLavie-OS-BOT](https://github.com/drmacze/DLavie-OS-BOT) | `JavaScript` | — |
 | [dlaviecomerce](https://github.com/drmacze/dlaviecomerce) | `TypeScript` | Project |
-| [Darma-s-Portfolio](https://github.com/drmacze/Darma-s-Portfolio) | — | Portfolio site |
+| [DLavie-AI-Open](https://github.com/drmacze/DLavie-AI-Open) | `TypeScript` | — |
+| [DLavie-Meta](https://github.com/drmacze/DLavie-Meta) | `TypeScript` | — |
 <!-- PINNED-PROJECTS:END -->
 
 <!-- stats-updated: 2026-06-11 -->
