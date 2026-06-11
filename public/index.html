@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spotify Now Playing</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #22c55e;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .logo svg { width: 28px; height: 28px; }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      transition: border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--glow, transparent);
+      opacity: 0.04;
+      pointer-events: none;
+      transition: background 0.5s;
+    }
+
+    .card.playing { border-color: #22c55e55; }
+    .card.playing::before { background: #22c55e; opacity: 0.04; }
+
+    .art-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .art {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      object-fit: cover;
+      display: block;
+      background: #1e1e2e;
+    }
+
+    .art-placeholder {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      background: #21262d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8b949e;
+      margin-bottom: 6px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 1.5s infinite;
+    }
+
+    .dot.paused {
+      background: #8b949e;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e6edf3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .artist {
+      font-size: 13px;
+      color: #8b949e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 10px;
+    }
+
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 3px;
+      background: #30363d;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #22c55e;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+
+    .time {
+      font-size: 10px;
+      color: #8b949e;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #22c55e;
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .link-btn:hover { opacity: 1; }
+
+    /* ── Not playing state ── */
+    .not-playing .title { color: #484f58; }
+    .not-playing .artist { color: #484f58; }
+    .not-playing .progress-fill { background: #30363d; }
+
+    /* ── Auth box ── */
+    .auth-box {
+      width: 100%;
+      max-width: 420px;
+      background: #161b22;
+      border: 1px solid #f0883e55;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .auth-box h3 { color: #f0883e; margin-bottom: 8px; font-size: 15px; }
+    .auth-box p { color: #8b949e; font-size: 13px; margin-bottom: 16px; }
+
+    .btn-auth {
+      display: inline-block;
+      padding: 10px 24px;
+      background: #22c55e;
+      color: #0d1117;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-auth:hover { background: #16a34a; }
+
+    /* ── Embed info ── */
+    .embed-info {
+      width: 100%;
+      max-width: 420px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+
+    .embed-info h4 {
+      font-size: 12px;
+      color: #8b949e;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .code-line {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #22c55e;
+      word-break: break-all;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .code-line:hover { border-color: #22c55e; }
+
+    .copy-hint {
+      font-size: 11px;
+      color: #484f58;
+      margin-top: 6px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="#22c55e" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.624.624 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.624.624 0 0 1-.277-1.216c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 0 1 .207.858zm1.223-2.723a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.781.781 0 0 1-.973-.519.781.781 0 0 1 .519-.972c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.563-1.08 9.487-.871 13.22 1.37a.937.937 0 0 1-.96 1.578l-.1-.001z"/>
+    </svg>
+    Spotify Now Playing
+  </div>
+
+  <div id="app">
+    <div class="card" id="card">
+      <div class="art-placeholder" id="art-placeholder">🎵</div>
+      <img class="art" id="art" style="display:none" alt="Album Art"/>
+      <div class="info">
+        <div class="status-badge">
+          <div class="dot" id="dot"></div>
+          <span id="status-text">Memuat...</span>
+        </div>
+        <div class="title" id="title">—</div>
+        <div class="artist" id="artist">—</div>
+        <div class="progress-wrap">
+          <span class="time" id="time-cur">0:00</span>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+          </div>
+          <span class="time" id="time-dur">0:00</span>
+        </div>
+        <a class="link-btn" id="spotify-link" href="#" target="_blank" style="display:none">
+          ▶ Buka di Spotify
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-box" id="auth-box" style="display:none">
+    <h3>⚠️ Belum Terautentikasi</h3>
+    <p>Hubungkan akun Spotify kamu untuk mulai menampilkan lagu yang sedang diputar.</p>
+    <a class="btn-auth" href="/auth">Hubungkan Spotify</a>
+  </div>
+
+  <div class="embed-info" id="embed-section" style="display:none">
+    <h4>Embed di README</h4>
+    <div class="code-line" id="embed-code" onclick="copyEmbed(this)"></div>
+    <div class="copy-hint">klik untuk copy</div>
+  </div>
+
+  <script>
+    let progressTimer = null;
+    let currentProgress = 0;
+    let currentDuration = 0;
+    let isPlaying = false;
+
+    const $ = id => document.getElementById(id);
+
+    function formatMs(ms) {
+      const s = Math.floor(ms / 1000);
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function updateProgress() {
+      if (isPlaying) currentProgress += 1000;
+      const pct = currentDuration > 0 ? Math.min((currentProgress / currentDuration) * 100, 100) : 0;
+      $('progress').style.width = pct + '%';
+      $('time-cur').textContent = formatMs(currentProgress);
+    }
+
+    function render(data) {
+      if (data.error === 'not_authenticated') {
+        $('auth-box').style.display = 'block';
+        $('embed-section').style.display = 'none';
+        return;
+      }
+
+      $('auth-box').style.display = 'none';
+      $('embed-section').style.display = 'block';
+
+      isPlaying = data.isPlaying;
+      currentProgress = data.progress || 0;
+      currentDuration = data.duration || 0;
+
+      const card = $('card');
+      const dot = $('dot');
+
+      if (data.isPlaying) {
+        card.className = 'card playing';
+        dot.className = 'dot';
+        $('status-text').textContent = 'Now Playing';
+      } else {
+        card.className = 'card not-playing';
+        dot.className = 'dot paused';
+        $('status-text').textContent = data.title ? 'Dijeda' : 'Tidak ada yang diputar';
+      }
+
+      if (data.title) {
+        $('title').textContent = data.title;
+        $('artist').textContent = data.artist || '';
+        $('time-dur').textContent = formatMs(data.duration || 0);
+      } else {
+        $('title').textContent = 'Tidak ada lagu';
+        $('artist').textContent = '';
+      }
+
+      if (data.albumArt) {
+        $('art').src = data.albumArt;
+        $('art').style.display = 'block';
+        $('art-placeholder').style.display = 'none';
+      } else {
+        $('art').style.display = 'none';
+        $('art-placeholder').style.display = 'flex';
+      }
+
+      if (data.songUrl) {
+        $('spotify-link').href = data.songUrl;
+        $('spotify-link').style.display = 'inline-flex';
+      } else {
+        $('spotify-link').style.display = 'none';
+      }
+
+      updateProgress();
+
+      const origin = window.location.origin;
+      $('embed-code').textContent = `[![Now Playing](${origin}/api/now-playing/svg)](${origin})`;
+    }
+
+    function copyEmbed(el) {
+      navigator.clipboard.writeText(el.textContent).then(() => {
+        el.style.borderColor = '#22c55e';
+        el.style.color = '#e6edf3';
+        setTimeout(() => {
+          el.style.borderColor = '';
+          el.style.color = '#22c55e';
+        }, 1500);
+      });
+    }
+
+    // Progress ticker
+    clearInterval(progressTimer);
+    progressTimer = setInterval(updateProgress, 1000);
+
+    // SSE connection
+    function connectSSE() {
+      const es = new EventSource('/api/stream');
+
+      es.onmessage = (e) => {
+        try {
+          render(JSON.parse(e.data));
+        } catch {}
+      };
+
+      es.onerror = () => {
+        es.close();
+        setTimeout(connectSSE, 5000);
+      };
+    }
+
+    connectSSE();
+  </script>
+</body>
+</html>
