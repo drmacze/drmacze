@@ -9,65 +9,46 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
-const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-
-let SPOTIFY_REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN || null;
-let cachedAccessToken = null;
-let tokenExpiresAt = 0;
-
-const REDIRECT_URI_PATH = '/callback';
-
-function getBaseUrl(req) {
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  const proto = req.headers['x-forwarded-proto'] || 'https';
-  return `${proto}://${host}`;
-}
-
-async function getAccessToken() {
-  if (cachedAccessToken && Date.now() < tokenExpiresAt - 30000) return cachedAccessToken;
-  if (!SPOTIFY_REFRESH_TOKEN) return null;
-  try {
-    const creds = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
-    const res = await axios.post('https://accounts.spotify.com/api/token',
-      new URLSearchParams({ grant_type: 'refresh_token', refresh_token: SPOTIFY_REFRESH_TOKEN }),
-      { headers: { Authorization: `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    cachedAccessToken = res.data.access_token;
-    tokenExpiresAt = Date.now() + res.data.expires_in * 1000;
-    if (res.data.refresh_token) SPOTIFY_REFRESH_TOKEN = res.data.refresh_token;
-    return cachedAccessToken;
-  } catch (err) {
-    console.error('Token refresh error:', err.response?.data || err.message);
-    return null;
-  }
-}
+const LASTFM_API_KEY  = process.env.LASTFM_API_KEY;
+const LASTFM_USERNAME = process.env.LASTFM_USERNAME;
 
 async function getNowPlaying() {
-  const token = await getAccessToken();
-  if (!token) return null;
-
-  // Top track of the last 4 weeks — no Premium required
+  if (!LASTFM_API_KEY || !LASTFM_USERNAME) return null;
   try {
-    const res = await axios.get('https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=short_term', {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await axios.get('https://ws.audioscrobbler.com/2.0/', {
+      params: {
+        method: 'user.getrecenttracks',
+        user: LASTFM_USERNAME,
+        api_key: LASTFM_API_KEY,
+        format: 'json',
+        limit: 1,
+      },
+      timeout: 5000,
     });
-    const items = res.data?.items;
-    if (!items || items.length === 0) return { isPlaying: false };
-    const track = items[0];
+
+    const tracks = res.data?.recenttracks?.track;
+    if (!tracks || tracks.length === 0) return { isPlaying: false };
+
+    const track = Array.isArray(tracks) ? tracks[0] : tracks;
+    const isPlaying = track['@attr']?.nowplaying === 'true';
+
+    // Last.fm album art — pick largest image (last in array)
+    const images = track.image || [];
+    const artUrl = images[images.length - 1]?.['#text'] || null;
+
     return {
-      isPlaying: false,
-      isTopTrack: true,
-      title: track.name,
-      artist: track.artists.map(a => a.name).join(', '),
-      album: track.album.name,
-      albumArt: track.album.images[0]?.url || null,
-      songUrl: track.external_urls.spotify,
-      duration: track.duration_ms,
+      isPlaying,
+      isTopTrack: !isPlaying,
+      title: track.name || 'Unknown',
+      artist: track.artist?.['#text'] || track.artist?.name || 'Unknown Artist',
+      album: track.album?.['#text'] || '',
+      albumArt: artUrl || null,
+      songUrl: track.url || null,
+      duration: 0,
       progress: 0,
     };
   } catch (err) {
-    console.error('Top-tracks error:', err.response?.status, JSON.stringify(err.response?.data));
+    console.error('Last.fm error:', err.response?.status, err.message);
     return null;
   }
 }
@@ -129,9 +110,9 @@ app.get('/callback', async (req, res) => {
 // ── API ───────────────────────────────────────────────────────────────────────
 
 app.get('/api/now-playing', async (req, res) => {
-  if (!SPOTIFY_REFRESH_TOKEN) return res.status(401).json({ error: 'not_authenticated', authUrl: '/auth' });
+  if (!LASTFM_API_KEY || !LASTFM_USERNAME) return res.status(401).json({ error: 'not_configured' });
   const data = await getNowPlaying();
-  if (data === null) return res.status(503).json({ error: 'spotify_error' });
+  if (data === null) return res.status(503).json({ error: 'lastfm_error' });
   res.json(data);
 });
 
@@ -147,7 +128,7 @@ app.get('/api/stream', (req, res) => {
   const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
   const poll = async () => {
-    if (!SPOTIFY_REFRESH_TOKEN) { send({ error: 'not_authenticated' }); return; }
+    if (!LASTFM_API_KEY || !LASTFM_USERNAME) { send({ error: 'not_configured' }); return; }
     const data = await getNowPlaying();
     if (data) send(data);
   };
@@ -165,8 +146,8 @@ app.get('/api/now-playing/svg', async (req, res) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  if (!SPOTIFY_REFRESH_TOKEN) {
-    return res.send(buildPixelSVG({ isPlaying: false, title: 'NOT AUTHENTICATED', artist: 'VISIT /AUTH TO CONNECT' }, null));
+  if (!LASTFM_API_KEY || !LASTFM_USERNAME) {
+    return res.send(buildPixelSVG({ isPlaying: false, title: 'NOT CONFIGURED', artist: 'SET LASTFM_API_KEY + USERNAME' }, null));
   }
 
   const data = await getNowPlaying();
