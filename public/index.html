@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NOW PLAYING</title>
+  <title>NOW PLAYING // FIRE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -11,801 +11,955 @@
   <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/bundled/lenis.min.js"></script>
   <style>
     :root {
-      --pink:       #e91e8c;
-      --pink-light: #f472b6;
-      --pink-dim:   #e91e8c33;
-      --pink-glow:  #e91e8c22;
-      --purple:     #9c27b0;
-      --purple-dim: #9c27b044;
-      --rose:       #f8c8d4;
-      --dark:       #0d0014;
-      --surface:    #1a0a2e;
-      --surface2:   #2d1b3d;
-      --border:     #3d2a50;
-      --text:       #f8e8ff;
-      --muted:      #c084fc;
-      --dead:       #4a3560;
+      --black:   #000000;
+      --bg:      #060100;
+      --surf:    #120400;
+      --surf2:   #1e0700;
+      --fy:      #FFD700;
+      --fo:      #FF6600;
+      --fr:      #CC2200;
+      --fd:      #771100;
+      --fe:      #3a0800;
+      --text:    #FFF0CC;
+      --muted:   #CC7733;
+      --dead:    #3a1800;
+      --px:      4px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: auto; }
 
     body {
-      background: var(--dark);
+      background: var(--bg);
       color: var(--text);
       font-family: 'Press Start 2P', monospace;
       min-height: 100vh;
       overflow-x: hidden;
-      position: relative;
-      image-rendering: pixelated;
     }
 
-    /* ── Large pixel grid background (like beadwork) ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--surface) 1px, transparent 1px),
-        linear-gradient(90deg, var(--surface) 1px, transparent 1px);
-      background-size: 10px 10px;
-      opacity: 0.6;
-      pointer-events: none;
-      z-index: 0;
+    /* ── WebGL canvas ─────────────────────────────────────── */
+    #glc {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
     }
 
-    /* ── Gradient vignette ── */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 80% at 20% 20%, #e91e8c0a 0%, transparent 60%),
-        radial-gradient(ellipse 80% 80% at 80% 80%, #9c27b00a 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ── Scanlines ── */
-    .scanlines {
-      position: fixed;
-      inset: 0;
+    /* ── Scanlines ────────────────────────────────────────── */
+    #scan {
+      position: fixed; inset: 0;
       background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,0.08) 3px,
-        rgba(0,0,0,0.08) 4px
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px
       );
-      pointer-events: none;
-      z-index: 998;
+      pointer-events: none; z-index: 997;
     }
 
-    /* ── Pixel corner brackets ── */
-    .corner {
-      position: fixed;
-      z-index: 10;
-      width: 24px;
-      height: 24px;
+    /* ── Pixel grid bg overlay ────────────────────────────── */
+    #pgrid {
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,102,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,102,0,0.03) 1px, transparent 1px);
+      background-size: 8px 8px;
+      pointer-events: none; z-index: 0;
     }
-    .corner::before, .corner::after {
-      content: '';
-      position: absolute;
-      background: var(--pink);
-    }
-    .corner::before { width: 100%; height: 2px; top: 0; left: 0; }
-    .corner::after  { width: 2px; height: 100%; top: 0; left: 0; }
-    .corner.tl { top: 12px; left: 12px; }
-    .corner.tr { top: 12px; right: 12px; transform: rotate(90deg); }
-    .corner.bl { bottom: 12px; left: 12px; transform: rotate(270deg); }
-    .corner.br { bottom: 12px; right: 12px; transform: rotate(180deg); }
 
-    /* ── Layout ── */
+    /* ── Fire pixel bar (bottom) ──────────────────────────── */
+    #firebar {
+      position: fixed; bottom: 0; left: 0;
+      width: 100%; z-index: 3;
+      pointer-events: none; display: block;
+    }
+
+    /* ── Screen corner brackets ───────────────────────────── */
+    .scr-corner {
+      position: fixed; z-index: 10;
+      width: 28px; height: 28px;
+    }
+    .scr-corner::before,
+    .scr-corner::after {
+      content: ''; position: absolute;
+      background: var(--fo);
+    }
+    .scr-corner::before { width: 100%; height: 3px; top: 0; left: 0; }
+    .scr-corner::after  { width: 3px; height: 100%; top: 0; left: 0; }
+    .scr-corner.tl { top: 12px; left: 12px; }
+    .scr-corner.tr { top: 12px; right: 12px; transform: rotate(90deg); }
+    .scr-corner.bl { bottom: 12px; left: 12px; transform: rotate(270deg); }
+    .scr-corner.br { bottom: 12px; right: 12px; transform: rotate(180deg); }
+
+    /* ── Layout ───────────────────────────────────────────── */
     .page {
-      position: relative;
-      z-index: 1;
+      position: relative; z-index: 1;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 36px;
-      padding: 60px 24px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 28px; padding: 80px 24px 200px;
     }
 
-    /* ── Header ── */
-    .sys-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
+    /* ── Header ───────────────────────────────────────────── */
+    .hdr { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+    .hdr-label {
+      font-size: 6px; letter-spacing: 5px;
+      color: var(--muted); text-transform: uppercase;
     }
 
-    .sys-label {
-      font-size: 7px;
-      letter-spacing: 4px;
-      color: var(--muted);
-      text-transform: uppercase;
+    .hdr-title-wrap {
+      display: flex; align-items: center; gap: 8px;
     }
 
-    .sys-title {
-      font-size: 16px;
-      letter-spacing: 3px;
-      background: linear-gradient(90deg, var(--pink), var(--pink-light), var(--purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .hdr-title {
+      font-size: 16px; letter-spacing: 2px;
+      background: linear-gradient(180deg, var(--fy) 0%, var(--fo) 50%, var(--fr) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
-      text-shadow: none;
-      filter: drop-shadow(0 0 16px var(--pink-dim));
-      position: relative;
+      filter: drop-shadow(0 0 24px rgba(255,102,0,0.6));
     }
 
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      height: 14px;
-      background: var(--pink);
-      vertical-align: middle;
-      margin-left: 4px;
-      animation: blink 1s step-end infinite;
+    #cursor-blink {
+      display: inline-block; width: 12px; height: 18px;
+      background: var(--fo); flex-shrink: 0;
     }
 
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-    .sys-divider {
-      height: 2px;
-      width: 240px;
-      background: linear-gradient(90deg, transparent, var(--pink), var(--purple), transparent);
-      transform-origin: center;
+    .hdr-divider {
+      width: 320px; height: 3px;
+      background: linear-gradient(90deg,
+        transparent, var(--fy), var(--fo), var(--fr), transparent);
     }
 
-    /* ── Main card ── */
-    .card {
-      width: 100%;
-      max-width: 520px;
-      position: relative;
-    }
+    /* ── Main card ────────────────────────────────────────── */
+    .card { width: 100%; max-width: 540px; position: relative; }
 
-    /* Pixel-art clip corners */
     .card-inner {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 24px;
-      position: relative;
-      clip-path: polygon(
-        0 10px, 10px 0,
-        calc(100% - 10px) 0, 100% 10px,
-        100% calc(100% - 10px), calc(100% - 10px) 100%,
-        10px 100%, 0 calc(100% - 10px)
-      );
-      transition: border-color 0.4s, box-shadow 0.4s;
-    }
-
-    .card.playing .card-inner {
-      border-color: var(--pink-dim);
+      background: var(--surf);
+      border: 3px solid var(--fo);
+      padding: 20px; position: relative;
       box-shadow:
-        0 0 40px -10px var(--pink-dim),
-        inset 0 0 40px -20px var(--pink-glow);
+        6px 6px 0 var(--fd),
+        0 0 50px rgba(255,102,0,0.12),
+        inset 0 0 50px rgba(0,0,0,0.6);
     }
 
-    /* Pixel corner squares */
-    .px-corner {
-      position: absolute;
-      width: 8px;
-      height: 8px;
-      background: var(--pink);
-      z-index: 2;
+    /* pixel corner squares */
+    .pxc {
+      position: absolute; width: 8px; height: 8px;
     }
-    .px-corner.tl { top: -1px; left: -1px; }
-    .px-corner.tr { top: -1px; right: -1px; }
-    .px-corner.bl { bottom: -1px; left: -1px; }
-    .px-corner.br { bottom: -1px; right: -1px; }
+    .pxc.tl { top: -3px; left: -3px; background: var(--fy); }
+    .pxc.tr { top: -3px; right: -3px; background: var(--fy); }
+    .pxc.bl { bottom: -3px; left: -3px; background: var(--fy); }
+    .pxc.br { bottom: -3px; right: -3px; background: var(--fy); }
 
-    /* ── Card top ── */
-    .card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
+    /* ── Card title bar ───────────────────────────────────── */
+    .card-titlebar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 10px; margin: -20px -20px 16px;
+      background: var(--surf2);
+      border-bottom: 2px solid var(--fo);
     }
 
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .card-tb-left { display: flex; align-items: center; gap: 8px; }
 
-    /* Pixel-art LED indicator (4×4 grid of squares) */
-    .led {
-      display: grid;
-      grid-template-columns: repeat(2, 4px);
-      gap: 1px;
-    }
-    .led-cell {
-      width: 4px;
-      height: 4px;
+    /* fire LED dot cluster */
+    .fire-leds { display: flex; gap: 3px; }
+    .fire-led-dot {
+      width: 8px; height: 8px;
       background: var(--dead);
+      border: 1px solid var(--fd);
     }
-    .led.on .led-cell {
-      background: var(--pink);
-      box-shadow: 0 0 4px var(--pink);
-      animation: led-pulse 1s ease-in-out infinite alternate;
+    .fire-leds.on .fire-led-dot:nth-child(1) {
+      background: var(--fy);
+      box-shadow: 0 0 8px var(--fy);
     }
-    @keyframes led-pulse {
-      from { opacity: 0.6; }
-      to   { opacity: 1; }
+    .fire-leds.on .fire-led-dot:nth-child(2) {
+      background: var(--fo);
+      box-shadow: 0 0 6px var(--fo);
+    }
+    .fire-leds.on .fire-led-dot:nth-child(3) {
+      background: var(--fr);
+      box-shadow: 0 0 4px var(--fr);
     }
 
     .status-label {
-      font-size: 7px;
-      letter-spacing: 2px;
+      font-size: 7px; letter-spacing: 2px;
       color: var(--dead);
     }
-    .status-label.on { color: var(--pink); }
+    .status-label.on { color: var(--fo); }
 
-    /* Pixel equalizer blocks (right side) */
-    .eq-wrap {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 20px;
-    }
-
+    /* EQ bars */
+    .eq-wrap { display: flex; align-items: flex-end; gap: 3px; height: 22px; }
     .eq-bar {
-      width: 5px;
-      background: var(--pink);
+      width: 6px; background: var(--fo);
       image-rendering: pixelated;
-      box-shadow: 0 0 4px var(--pink-dim);
     }
 
-    /* ── Art + info ── */
-    .card-body {
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-    }
+    /* ── Card body ────────────────────────────────────────── */
+    .card-body { display: flex; gap: 20px; align-items: flex-start; }
 
-    .art-wrap { position: relative; flex-shrink: 0; }
+    /* ── Album art ────────────────────────────────────────── */
+    .art-wrap { flex-shrink: 0; position: relative; }
 
     .art-frame {
-      width: 100px;
-      height: 100px;
-      border: 2px solid var(--pink-dim);
-      position: relative;
-      overflow: hidden;
-      background: var(--surface2);
-      image-rendering: pixelated;
+      width: 108px; height: 108px;
+      background: var(--surf2);
+      border: 3px solid var(--fr);
+      position: relative; overflow: hidden;
     }
-
-    /* Pixel grid overlay on art */
+    /* pixel grid overlay */
     .art-frame::before {
-      content: '';
-      position: absolute;
-      inset: 0;
+      content: ''; position: absolute; inset: 0;
       background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 5px 5px;
-      z-index: 2;
-      pointer-events: none;
+        linear-gradient(rgba(255,102,0,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,102,0,0.06) 1px, transparent 1px);
+      background-size: 6px 6px;
+      z-index: 2; pointer-events: none;
+    }
+    /* fire shimmer */
+    .art-frame::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(255,200,0,0.08) 0%, transparent 60%);
+      z-index: 3; pointer-events: none;
     }
 
     .art-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      image-rendering: pixelated;
-      display: block;
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      image-rendering: auto;
     }
 
-    .art-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .art-ph {
+      width: 100%; height: 100%;
+      display: flex; align-items: center;
+      justify-content: center; flex-direction: column; gap: 6px;
     }
 
-    .art-corner {
-      position: absolute;
-      width: 5px;
-      height: 5px;
-      background: var(--pink);
-      z-index: 3;
-    }
-    .art-corner.tl { top: -1px; left: -1px; }
-    .art-corner.tr { top: -1px; right: -1px; }
-    .art-corner.bl { bottom: -1px; left: -1px; }
-    .art-corner.br { bottom: -1px; right: -1px; }
+    .art-pxc { position: absolute; z-index: 4; }
+    .art-pxc.tl { top: -3px; left: -3px;   width: 6px; height: 6px; background: var(--fy); }
+    .art-pxc.tr { top: -3px; right: -3px;  width: 6px; height: 6px; background: var(--fy); }
+    .art-pxc.bl { bottom: -3px; left: -3px;  width: 6px; height: 6px; background: var(--fy); }
+    .art-pxc.br { bottom: -3px; right: -3px; width: 6px; height: 6px; background: var(--fy); }
 
-    /* Pink gradient shimmer on art */
-    .art-shimmer {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--pink-glow) 0%, transparent 50%);
-      z-index: 1;
-      pointer-events: none;
+    /* ── Track info ───────────────────────────────────────── */
+    .info {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 10px;
     }
 
-    .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-
-    .song-title {
-      font-size: 10px;
-      line-height: 1.8;
-      letter-spacing: 0.5px;
-      word-break: break-word;
-      color: var(--text);
+    .track-title {
+      font-size: 10px; line-height: 1.8;
+      color: var(--text); word-break: break-word;
+    }
+    .track-artist {
+      font-size: 8px; color: var(--muted);
+      letter-spacing: 1px; line-height: 1.6;
     }
 
-    .song-artist {
-      font-size: 8px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      line-height: 1.6;
+    /* pixel art divider line */
+    .px-divider {
+      height: 2px;
+      background: linear-gradient(90deg, var(--fo), var(--fr), transparent);
+      width: 70%;
     }
 
-    .open-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 7px;
-      color: var(--pink);
-      text-decoration: none;
-      letter-spacing: 1px;
-      border: 1px solid var(--pink-dim);
-      padding: 6px 10px;
-      margin-top: 6px;
-      clip-path: polygon(0 4px, 4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px));
-      transition: background 0.15s;
+    /* pixel art button */
+    .px-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px; letter-spacing: 1px;
+      color: var(--fo); text-decoration: none;
+      background: var(--fe);
+      border: 2px solid var(--fo);
+      padding: 7px 10px;
+      box-shadow: 3px 3px 0 var(--fd);
+      cursor: pointer;
+      transition: none;
+      margin-top: 4px;
     }
-    .open-link:hover { background: var(--pink-glow); }
-    .open-link svg { width: 10px; height: 10px; fill: currentColor; }
-
-    /* ── Progress ── */
-    .progress-section { margin-top: 20px; }
-
-    .prog-track {
-      display: flex;
-      gap: 2px;
-      margin-bottom: 8px;
+    .px-btn:hover {
+      background: var(--fr);
+      color: var(--fy);
+      border-color: var(--fy);
+      box-shadow: 4px 4px 0 var(--fd);
+      transform: translate(-1px, -1px);
     }
-
-    .prog-px {
-      height: 8px;
-      flex: 1;
-      background: var(--surface2);
-      position: relative;
-      clip-path: none;
+    .px-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--fd);
     }
 
-    .prog-px.filled {
-      background: var(--pink);
-      box-shadow: 0 0 4px var(--pink-dim);
+    /* ── Progress section ─────────────────────────────────── */
+    .prog-section {
+      margin-top: 18px; padding-top: 14px;
+      border-top: 2px solid var(--fe);
     }
 
-    .prog-px.half {
-      background: linear-gradient(90deg, var(--pink) 50%, var(--surface2) 50%);
+    .prog-track { display: flex; gap: 2px; margin-bottom: 8px; }
+
+    .prog-px { height: 9px; flex: 1; background: var(--surf2); }
+    .prog-px.lit {
+      background: var(--fy);
+      box-shadow: 0 0 4px rgba(255,215,0,0.6);
     }
+    .prog-px.lit-mid { background: var(--fo); }
+    .prog-px.lit-end { background: var(--fr); }
 
     .time-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 7px;
-      color: var(--dead);
-      letter-spacing: 1px;
+      display: flex; justify-content: space-between;
+      font-size: 7px; color: var(--dead);
     }
 
-    /* ── Auth box ── */
-    .auth-box {
-      display: none;
-      width: 100%;
-      max-width: 520px;
-      background: var(--surface);
-      border: 1px solid #f0883e55;
-      padding: 28px;
-      text-align: center;
-      clip-path: polygon(
-        0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px,
-        100% calc(100% - 10px), calc(100% - 10px) 100%,
-        10px 100%, 0 calc(100% - 10px)
-      );
-    }
-
-    .auth-box h3 { font-size: 10px; color: #f0883e; margin-bottom: 12px; letter-spacing: 2px; }
-    .auth-box p  { font-size: 7px; color: var(--muted); line-height: 2; margin-bottom: 20px; }
-
-    .btn-auth {
-      display: inline-block;
-      padding: 10px 20px;
-      background: linear-gradient(135deg, var(--pink), var(--purple));
-      color: #fff;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      text-decoration: none;
-      letter-spacing: 1px;
-      clip-path: polygon(0 4px, 4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px));
-    }
-
-    /* ── Embed section ── */
+    /* ── Embed section ────────────────────────────────────── */
     .embed-section {
-      display: none;
-      width: 100%;
-      max-width: 520px;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      width: 100%; max-width: 540px;
+      background: var(--surf);
+      border: 2px solid var(--fe);
       padding: 16px 20px;
+      box-shadow: 4px 4px 0 var(--fd);
     }
-
-    .embed-label { font-size: 7px; letter-spacing: 3px; color: var(--dead); margin-bottom: 10px; display: block; }
-
+    .embed-lbl {
+      font-size: 6px; letter-spacing: 3px;
+      color: var(--dead); display: block; margin-bottom: 10px;
+    }
     .embed-code {
-      background: var(--dark);
-      border: 1px solid var(--border);
+      background: var(--black);
+      border: 1px solid var(--fe);
       padding: 10px 12px;
-      font-size: 9px;
-      color: var(--pink);
+      font-size: 8px; color: var(--fo);
       font-family: 'Courier New', monospace;
-      word-break: break-all;
-      cursor: pointer;
-      transition: border-color 0.2s;
+      word-break: break-all; cursor: pointer;
       display: block;
+      transition: border-color 0.15s;
     }
-    .embed-code:hover { border-color: var(--pink); }
-    .embed-hint { font-size: 7px; color: var(--dead); margin-top: 6px; text-align: right; }
+    .embed-code:hover { border-color: var(--fo); }
+    .embed-hint { font-size: 6px; color: var(--dead); margin-top: 6px; text-align: right; }
 
-    /* ── Particle canvas ── */
-    #particles {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+    /* ── Footer ───────────────────────────────────────────── */
+    .footer { font-size: 6px; color: var(--dead); letter-spacing: 3px; }
+
+    /* ── Fire bar CSS fallback — pixel columns + fire gradient ── */
+    #firebar {
+      height: 220px !important;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px, transparent 9px,
+          rgba(0,0,0,0.55) 9px, rgba(0,0,0,0.55) 10px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          transparent 0px, transparent 9px,
+          rgba(0,0,0,0.35) 9px, rgba(0,0,0,0.35) 10px
+        ),
+        linear-gradient(
+          0deg,
+          #FFD700 0%, #FF6600 22%, #CC2200 48%, #771100 70%, #220800 88%, transparent 100%
+        );
+      image-rendering: pixelated;
     }
 
-    /* ── Footer ── */
-    .footer { font-size: 7px; color: var(--dead); letter-spacing: 2px; }
+    /* ── Pixel art "not connected" message ────────────────── */
+    .not-cfg {
+      width: 100%; max-width: 540px;
+      background: var(--surf);
+      border: 2px solid var(--fd);
+      padding: 24px; text-align: center;
+      box-shadow: 4px 4px 0 #330500;
+      display: none;
+    }
+    .not-cfg h3 { font-size: 9px; color: var(--fo); margin-bottom: 12px; letter-spacing: 2px; }
+    .not-cfg p  { font-size: 7px; color: var(--muted); line-height: 2.2; }
   </style>
 </head>
 <body>
 
-  <canvas id="particles"></canvas>
-  <div class="scanlines"></div>
+<!-- Background layers -->
+<canvas id="glc"></canvas>
+<div id="pgrid"></div>
+<div id="scan"></div>
 
-  <div class="corner tl"></div>
-  <div class="corner tr"></div>
-  <div class="corner bl"></div>
-  <div class="corner br"></div>
+<!-- Pixel fire bar (bottom) -->
+<canvas id="firebar"></canvas>
 
-  <div class="page">
+<!-- Screen corners -->
+<div class="scr-corner tl"></div>
+<div class="scr-corner tr"></div>
+<div class="scr-corner bl"></div>
+<div class="scr-corner br"></div>
 
-    <div class="sys-header" id="header">
-      <div class="sys-label">AUDIO MODULE // SYSTEM V2.0</div>
-      <div style="display:flex;align-items:center;gap:4px">
-        <div class="sys-title">NOW_PLAYING</div>
-        <div class="cursor"></div>
-      </div>
-      <div class="sys-divider" id="divider"></div>
+<div class="page">
+
+  <!-- Header -->
+  <div class="hdr" id="hdr">
+    <div class="hdr-label">AUDIO MODULE // FIRE v3.0</div>
+    <div class="hdr-title-wrap">
+      <div class="hdr-title">NOW_PLAYING</div>
+      <div id="cursor-blink"></div>
     </div>
-
-    <div class="card" id="card">
-      <div class="px-corner tl"></div>
-      <div class="px-corner tr"></div>
-      <div class="px-corner bl"></div>
-      <div class="px-corner br"></div>
-      <div class="card-inner">
-
-        <div class="card-top">
-          <div class="status-row">
-            <div class="led" id="led">
-              <div class="led-cell"></div>
-              <div class="led-cell"></div>
-              <div class="led-cell"></div>
-              <div class="led-cell"></div>
-            </div>
-            <div class="status-label" id="slabel">LOADING</div>
-          </div>
-          <div class="eq-wrap" id="eq-wrap">
-            <div class="eq-bar" id="b1" style="height:3px"></div>
-            <div class="eq-bar" id="b2" style="height:8px"></div>
-            <div class="eq-bar" id="b3" style="height:5px"></div>
-            <div class="eq-bar" id="b4" style="height:12px"></div>
-            <div class="eq-bar" id="b5" style="height:4px"></div>
-            <div class="eq-bar" id="b6" style="height:15px"></div>
-            <div class="eq-bar" id="b7" style="height:6px"></div>
-            <div class="eq-bar" id="b8" style="height:9px"></div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="art-wrap">
-            <div class="art-frame" id="art-frame">
-              <div class="art-placeholder" id="art-ph">
-                <!-- Pixel note icon -->
-                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="13" y="3" width="3" height="18" fill="#e91e8c" opacity="0.5"/>
-                  <rect x="16" y="3" width="10" height="3" fill="#e91e8c" opacity="0.5"/>
-                  <rect x="23" y="3" width="3" height="8" fill="#e91e8c" opacity="0.5"/>
-                  <rect x="8" y="19" width="8" height="5" fill="#e91e8c" opacity="0.6"/>
-                  <rect x="18" y="19" width="8" height="5" fill="#e91e8c" opacity="0.6"/>
-                  <rect x="5" y="21" width="6" height="5" fill="#e91e8c" opacity="0.7"/>
-                  <rect x="15" y="21" width="6" height="5" fill="#e91e8c" opacity="0.7"/>
-                </svg>
-              </div>
-              <img id="art-img" style="display:none" alt=""/>
-              <div class="art-shimmer"></div>
-            </div>
-            <div class="art-corner tl"></div>
-            <div class="art-corner tr"></div>
-            <div class="art-corner bl"></div>
-            <div class="art-corner br"></div>
-          </div>
-
-          <div class="info">
-            <div class="song-title" id="s-title">---</div>
-            <div class="song-artist" id="s-artist">---</div>
-            <a class="open-link" id="s-link" href="#" target="_blank" style="display:none">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.624.624 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.624.624 0 0 1-.277-1.216c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 0 1 .207.858zm1.223-2.723a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.781.781 0 1 1-.454-1.491c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.563-1.08 9.487-.871 13.22 1.37a.937.937 0 0 1-.96 1.578l-.1-.001z"/></svg>
-              OPEN IN SPOTIFY
-            </a>
-          </div>
-        </div>
-
-        <div class="progress-section">
-          <div class="prog-track" id="prog-track"></div>
-          <div class="time-row">
-            <span id="t-cur">0:00</span>
-            <span id="t-dur">0:00</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="auth-box" id="auth-box">
-      <h3>NOT CONNECTED</h3>
-      <p>Connect your Spotify account<br/>to display now playing.</p>
-      <a class="btn-auth" href="/auth">CONNECT SPOTIFY</a>
-    </div>
-
-    <div class="embed-section" id="embed-section">
-      <span class="embed-label">README EMBED CODE</span>
-      <div class="embed-code" id="embed-code" onclick="copyEmbed(this)"></div>
-      <div class="embed-hint">CLICK TO COPY</div>
-    </div>
-
-    <div class="footer">DRMACZE // SPOTIFY MODULE // 2026</div>
-
+    <div class="hdr-divider" id="hdr-div"></div>
   </div>
 
-  <script>
-    // ── Lenis ─────────────────────────────────────────────────────────────────
-    const lenis = new Lenis({
-      duration: 1.4,
-      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  <!-- Main card -->
+  <div class="card" id="main-card">
+    <div class="card-inner">
+      <div class="pxc tl"></div>
+      <div class="pxc tr"></div>
+      <div class="pxc bl"></div>
+      <div class="pxc br"></div>
+
+      <!-- Title bar -->
+      <div class="card-titlebar">
+        <div class="card-tb-left">
+          <div class="fire-leds" id="fire-leds">
+            <div class="fire-led-dot"></div>
+            <div class="fire-led-dot"></div>
+            <div class="fire-led-dot"></div>
+          </div>
+          <div class="status-label" id="slabel">LOADING...</div>
+        </div>
+        <div class="eq-wrap" id="eq-wrap">
+          <div class="eq-bar" id="b1" style="height:3px"></div>
+          <div class="eq-bar" id="b2" style="height:9px"></div>
+          <div class="eq-bar" id="b3" style="height:5px"></div>
+          <div class="eq-bar" id="b4" style="height:13px"></div>
+          <div class="eq-bar" id="b5" style="height:7px"></div>
+          <div class="eq-bar" id="b6" style="height:16px"></div>
+          <div class="eq-bar" id="b7" style="height:5px"></div>
+          <div class="eq-bar" id="b8" style="height:10px"></div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body">
+        <div class="art-wrap">
+          <div class="art-frame" id="art-frame">
+            <div class="art-ph" id="art-ph">
+              <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                <rect x="16" y="4" width="4" height="22" fill="#FF6600" opacity="0.55"/>
+                <rect x="20" y="4" width="14" height="4" fill="#FF6600" opacity="0.55"/>
+                <rect x="30" y="4" width="4" height="12" fill="#FF6600" opacity="0.55"/>
+                <rect x="10" y="24" width="10" height="6" fill="#FF6600" opacity="0.7"/>
+                <rect x="22" y="24" width="10" height="6" fill="#FF6600" opacity="0.7"/>
+                <rect x="7"  y="27" width="7" height="7" fill="#FF6600" opacity="0.85"/>
+                <rect x="19" y="27" width="7" height="7" fill="#FF6600" opacity="0.85"/>
+              </svg>
+              <span style="font-size:5px;color:var(--dead);letter-spacing:1px">NO ART</span>
+            </div>
+            <img id="art-img" style="display:none" alt="album art"/>
+          </div>
+          <div class="art-pxc tl"></div>
+          <div class="art-pxc tr"></div>
+          <div class="art-pxc bl"></div>
+          <div class="art-pxc br"></div>
+        </div>
+
+        <div class="info">
+          <div class="track-title" id="s-title">---</div>
+          <div class="track-artist" id="s-artist">---</div>
+          <div class="px-divider"></div>
+          <a class="px-btn" id="s-link" href="#" target="_blank" style="display:none">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.624.624 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.624.624 0 0 1-.277-1.216c3.809-.87 7.076-.496 9.712 1.115a.624.624 0 0 1 .207.858zm1.223-2.723a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.781.781 0 1 1-.454-1.491c3.632-1.102 8.147-.568 11.234 1.328a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.793c3.563-1.08 9.487-.871 13.22 1.37a.937.937 0 0 1-.96 1.578l-.1-.001z"/>
+            </svg>
+            OPEN LINK
+          </a>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="prog-section">
+        <div class="prog-track" id="prog-track"></div>
+        <div class="time-row">
+          <span id="t-cur">0:00</span>
+          <span id="t-dur">0:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not configured box -->
+  <div class="not-cfg" id="not-cfg">
+    <h3>[ NOT CONFIGURED ]</h3>
+    <p>Set LASTFM_API_KEY<br/>and LASTFM_USERNAME<br/>to enable the widget.</p>
+  </div>
+
+  <!-- Embed -->
+  <div class="embed-section" id="embed-sec" style="display:none">
+    <span class="embed-lbl">&gt; README EMBED CODE</span>
+    <div class="embed-code" id="embed-code" onclick="copyEmbed(this)"></div>
+    <div class="embed-hint">[ CLICK TO COPY ]</div>
+  </div>
+
+  <div class="footer">DRMACZE // FIRE MODULE // 2026</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// LENIS SMOOTH SCROLL
+// ═══════════════════════════════════════════════════════════════
+const lenis = new Lenis({
+  duration: 1.2,
+  easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+});
+(function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
+
+
+// ═══════════════════════════════════════════════════════════════
+// WEBGL FIRE MESH GRADIENT BACKGROUND
+// ═══════════════════════════════════════════════════════════════
+(function initGL() {
+  const cvs = document.getElementById('glc');
+  const gl  = cvs.getContext('webgl') || cvs.getContext('experimental-webgl');
+  if (!gl) { cvs.style.display = 'none'; return; }
+
+  const resize = () => {
+    cvs.width  = window.innerWidth;
+    cvs.height = window.innerHeight;
+    gl.viewport(0, 0, cvs.width, cvs.height);
+  };
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* ── shaders ── */
+  const VS = `
+    attribute vec2 a_pos;
+    void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
+  `;
+
+  const FS = `
+    precision highp float;
+    uniform float u_t;
+    uniform vec2  u_res;
+
+    float hash21(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+    float noise(vec2 p) {
+      vec2 i = floor(p), f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      float a = hash21(i),
+            b = hash21(i + vec2(1,0)),
+            c = hash21(i + vec2(0,1)),
+            d = hash21(i + vec2(1,1));
+      return mix(mix(a,b,f.x), mix(c,d,f.x), f.y);
+    }
+    float fbm(vec2 p) {
+      float v = 0.0, amp = 0.5;
+      for (int i = 0; i < 6; i++) {
+        v   += noise(p) * amp;
+        p   *= 2.1;
+        amp *= 0.48;
+      }
+      return v;
+    }
+
+    /* fire palette */
+    vec3 firePalette(float t) {
+      t = clamp(t, 0.0, 1.0);
+      vec3 a = vec3(0.0,0.0,0.0);
+      vec3 b = vec3(0.47,0.02,0.0);
+      vec3 c = vec3(0.8, 0.13,0.0);
+      vec3 d = vec3(1.0, 0.4, 0.0);
+      vec3 e = vec3(1.0, 0.84,0.0);
+      if (t < 0.25) return mix(a, b, t / 0.25);
+      if (t < 0.5)  return mix(b, c, (t-0.25)/0.25);
+      if (t < 0.75) return mix(c, d, (t-0.5) /0.25);
+                    return mix(d, e, (t-0.75)/0.25);
+    }
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_res;
+
+      /* mesh gradient – 4 fire "emitters" that drift */
+      vec2 p0 = vec2(0.2 + 0.15*sin(u_t*0.31), 0.2 + 0.1*cos(u_t*0.19));
+      vec2 p1 = vec2(0.8 + 0.12*cos(u_t*0.27), 0.15+ 0.12*sin(u_t*0.23));
+      vec2 p2 = vec2(0.5 + 0.1 *sin(u_t*0.17), 0.75+ 0.08*cos(u_t*0.29));
+      vec2 p3 = vec2(0.15+ 0.1 *cos(u_t*0.22), 0.6 + 0.1 *sin(u_t*0.13));
+
+      float d0 = 1.0 - clamp(length(uv-p0)*2.0,0.0,1.0);
+      float d1 = 1.0 - clamp(length(uv-p1)*2.2,0.0,1.0);
+      float d2 = 1.0 - clamp(length(uv-p2)*2.5,0.0,1.0);
+      float d3 = 1.0 - clamp(length(uv-p3)*2.0,0.0,1.0);
+      float mesh = (d0 + d1*0.8 + d2*0.6 + d3*0.7) * 0.55;
+
+      /* turbulence layer */
+      vec2 tp = vec2(uv.x*3.5, (1.0-uv.y)*2.5 - u_t*0.25);
+      float turb = fbm(tp + vec2(sin(u_t*0.18)*0.3, 0.0));
+      float fire = clamp(turb * 1.3 - (1.0-uv.y) * 0.9, 0.0, 1.0);
+
+      /* combine */
+      float v = max(mesh * 0.7, fire * 0.5);
+
+      /* top fade – keep top dark */
+      v *= smoothstep(1.0, 0.3, uv.y) * 0.22;
+
+      vec3 col = firePalette(v * 3.0);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  const mkS = (type, src) => {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return s;
+  };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, mkS(gl.VERTEX_SHADER, VS));
+  gl.attachShader(prog, mkS(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER,
+    new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const aloc = gl.getAttribLocation(prog, 'a_pos');
+  gl.enableVertexAttribArray(aloc);
+  gl.vertexAttribPointer(aloc, 2, gl.FLOAT, false, 0, 0);
+
+  const uT   = gl.getUniformLocation(prog, 'u_t');
+  const uRes = gl.getUniformLocation(prog, 'u_res');
+  const t0   = performance.now();
+
+  (function loop(now) {
+    gl.uniform1f(uT, (now - t0) / 1000);
+    gl.uniform2f(uRes, cvs.width, cvs.height);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(loop);
+  })(t0);
+})();
+
+
+// ═══════════════════════════════════════════════════════════════
+// PIXEL ART FIRE BAR (bottom) — matches reference image style
+// ═══════════════════════════════════════════════════════════════
+(function initFireBar() {
+  const cvs = document.getElementById('firebar');
+  const ctx = cvs.getContext('2d');
+
+  const CELL   = 10;
+  const ROWS   = 22;
+  const GAP    = 1;
+  cvs.height   = ROWS * CELL;
+
+  // fire color palette: index 0 = bottom (yellow), last = top (dark)
+  const PAL = [
+    '#FFD700','#FFD200','#FFC400',  // yellow bottom
+    '#FFA500','#FF8800','#FF6600',  // orange
+    '#FF4400','#FF2200','#EE1100',  // red-orange
+    '#CC1100','#AA0F00','#880D00',  // red
+    '#660B00','#440700','#330500',  // dark red
+    '#220300','#110100','#050000',  // near-black top
+  ];
+
+  let W, COLS;
+  let heights  = [];
+  let targets  = [];
+  let vels     = [];
+  let sparks   = []; // floating spark pixels
+
+  let playing  = false;
+
+  const getW = () => Math.max(
+    window.innerWidth || 0,
+    document.documentElement.clientWidth || 0,
+    screen.width || 0,
+    320
+  );
+
+  const resize = () => {
+    W    = getW();
+    COLS = Math.ceil(W / CELL);
+    cvs.width = W;
+    // pre-populate with visible idle flame heights
+    while (heights.length < COLS) {
+      heights.push(ROWS * (0.3 + Math.random() * 0.35));
+      targets.push(ROWS * (0.4 + Math.random() * 0.4));
+      vels.push(0);
+    }
+  };
+  resize();
+  // re-run after layout is fully computed
+  window.addEventListener('load', resize);
+  window.addEventListener('resize', resize);
+
+  // spawn sparks
+  function spawnSpark(x, y) {
+    sparks.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: -(0.4 + Math.random() * 0.8),
+      life: 1.0,
+      decay: 0.02 + Math.random() * 0.03,
     });
-    (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
+  }
 
-    // ── Pixel particle system ────────────────────────────────────────────────
-    const cvs = document.getElementById('particles');
-    const ctx = cvs.getContext('2d');
-    let pts = [];
+  function update() {
+    const baseMax = playing ? ROWS * 0.95 : ROWS * 0.55;
 
-    function resizeCvs() { cvs.width = innerWidth; cvs.height = innerHeight; }
-    resizeCvs();
-    addEventListener('resize', resizeCvs);
-
-    // Two particle colors: pink and purple
-    const pColors = ['rgba(233,30,140,', 'rgba(156,39,176,', 'rgba(244,114,182,'];
-
-    function spawnPt() {
-      pts.push({
-        x: Math.floor(Math.random() * (innerWidth / 4)) * 4,
-        y: innerHeight + 4,
-        size: [2, 4, 4, 6][Math.floor(Math.random() * 4)],
-        speed: 0.3 + Math.random() * 0.5,
-        opacity: 0.1 + Math.random() * 0.4,
-        color: pColors[Math.floor(Math.random() * pColors.length)],
-      });
-    }
-
-    function drawPts() {
-      ctx.clearRect(0, 0, cvs.width, cvs.height);
-      pts = pts.filter(p => p.y > -10);
-      pts.forEach(p => {
-        p.y -= p.speed;
-        ctx.fillStyle = p.color + p.opacity + ')';
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-      });
-      requestAnimationFrame(drawPts);
-    }
-    drawPts();
-    setInterval(spawnPt, 250);
-
-    // ── GSAP intro ────────────────────────────────────────────────────────────
-    gsap.registerPlugin(TextPlugin);
-
-    gsap.timeline({ delay: 0.2 })
-      .from('#header',  { opacity: 0, y: -24, duration: 0.5, ease: 'power2.out' })
-      .from('#divider', { scaleX: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2')
-      .from('#card',    { opacity: 0, y: 24, duration: 0.5, ease: 'power2.out' }, '-=0.1')
-      .from('.footer',  { opacity: 0, duration: 0.4 });
-
-    // ── Equalizer GSAP ────────────────────────────────────────────────────────
-    let eqTls = [];
-    const eqIds = ['b1','b2','b3','b4','b5','b6','b7','b8'];
-    const eqSeqs = [
-      [3,16,6,20,8,14,3], [8,3,18,5,14,3,10],
-      [14,20,5,16,3,18,8], [5,10,22,3,14,6,16],
-      [20,5,14,3,18,6,20], [6,18,3,12,20,3,14],
-      [11,3,18,6,14,3,11], [16,8,3,20,6,12,16],
-    ];
-
-    function startEQ() {
-      stopEQ();
-      eqIds.forEach((id, i) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const seq = eqSeqs[i % eqSeqs.length];
-        const t = gsap.timeline({ repeat: -1 });
-        seq.forEach(h => {
-          t.to(el, { height: h, duration: 0.09 + Math.random() * 0.06, ease: 'none' });
-        });
-        t.timeScale(0.8 + Math.random() * 0.4);
-        eqTls.push(t);
-      });
-    }
-
-    function stopEQ() {
-      eqTls.forEach(t => t.kill());
-      eqTls = [];
-      eqIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) gsap.to(el, { height: 3, duration: 0.3 });
-      });
-    }
-
-    // ── Progress bar ──────────────────────────────────────────────────────────
-    const BLOCKS = 36;
-    const track = document.getElementById('prog-track');
-
-    function initProg() {
-      track.innerHTML = '';
-      for (let i = 0; i < BLOCKS; i++) {
-        const b = document.createElement('div');
-        b.className = 'prog-px';
-        b.id = 'pp' + i;
-        track.appendChild(b);
+    for (let i = 0; i < COLS; i++) {
+      // random target bursts
+      if (Math.random() < (playing ? 0.08 : 0.03)) {
+        targets[i] = baseMax * (0.4 + Math.random() * 0.6);
       }
-    }
-    initProg();
+      // spring + damping
+      vels[i] += (targets[i] - heights[i]) * 0.12;
+      vels[i] *= 0.72;
+      heights[i] += vels[i];
+      heights[i]  = Math.max(0, heights[i]);
+      // decay
+      targets[i] *= 0.94;
 
-    function setProg(pct) {
-      const filled = Math.round(pct * BLOCKS);
-      for (let i = 0; i < BLOCKS; i++) {
-        const el = document.getElementById('pp' + i);
-        if (!el) continue;
-        const f = i < filled;
-        el.classList.toggle('filled', f);
+      // spawn sparks from tall columns
+      if (playing && heights[i] > ROWS * 0.6 && Math.random() < 0.04) {
+        spawnSpark(i * CELL + CELL / 2, cvs.height - heights[i] * CELL);
       }
     }
 
-    function fmt(ms) {
-      const s = Math.floor(ms / 1000);
-      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    // update sparks
+    sparks = sparks.filter(s => s.life > 0);
+    sparks.forEach(s => {
+      s.x += s.vx; s.y += s.vy;
+      s.life -= s.decay;
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // draw columns
+    for (let i = 0; i < COLS; i++) {
+      const h = Math.round(heights[i]);
+      for (let j = 0; j < h && j < ROWS; j++) {
+        // j=0 bottom (yellow), j=h-1 top (dark)
+        // j=0 = bottom row (yellow), j=ROWS-1 = top (dark)
+        const colorIdx = Math.min(Math.round((j / ROWS) * (PAL.length - 1)), PAL.length - 1);
+        ctx.fillStyle = PAL[colorIdx];
+        ctx.fillRect(
+          i * CELL,
+          cvs.height - (j + 1) * CELL,
+          CELL - GAP,
+          CELL - GAP
+        );
+      }
     }
 
-    // ── State & tick ──────────────────────────────────────────────────────────
-    let progress = 0, duration = 0, isPlaying = false, ticker = null;
+    // draw sparks
+    sparks.forEach(s => {
+      const alpha = s.life;
+      ctx.globalAlpha = alpha;
+      // spark color based on life
+      ctx.fillStyle = s.life > 0.5 ? '#FFD700' : s.life > 0.25 ? '#FF6600' : '#CC2200';
+      ctx.fillRect(Math.round(s.x), Math.round(s.y), CELL - GAP, CELL - GAP);
+    });
+    ctx.globalAlpha = 1;
+  }
 
-    function startTick() {
-      stopTick();
-      ticker = setInterval(() => {
-        if (isPlaying) {
-          progress = Math.min(progress + 1000, duration);
-          setProg(duration > 0 ? progress / duration : 0);
-          document.getElementById('t-cur').textContent = fmt(progress);
-        }
-      }, 1000);
+  (function loop() {
+    update(); draw();
+    requestAnimationFrame(loop);
+  })();
+
+  window.setFirePlaying = v => { playing = v; };
+})();
+
+
+// ═══════════════════════════════════════════════════════════════
+// GSAP ANIMATIONS
+// ═══════════════════════════════════════════════════════════════
+gsap.registerPlugin(TextPlugin);
+
+gsap.timeline({ delay: 0.2 })
+  .from('#hdr',      { opacity: 0, y: -28, duration: 0.55, ease: 'power3.out' })
+  .from('#hdr-div',  { scaleX: 0, duration: 0.4, ease: 'power2.out' }, '-=0.15')
+  .from('#main-card',{ opacity: 0, y: 28, duration: 0.55, ease: 'power3.out' }, '-=0.2')
+  .from('.footer',   { opacity: 0, duration: 0.4 });
+
+// cursor blink
+gsap.to('#cursor-blink', { opacity: 0, duration: 0.55, repeat: -1, yoyo: true, ease: 'steps(1)' });
+
+
+// ═══════════════════════════════════════════════════════════════
+// EQUALIZER BARS
+// ═══════════════════════════════════════════════════════════════
+let eqTls  = [];
+const EQ_IDS = ['b1','b2','b3','b4','b5','b6','b7','b8'];
+const EQ_SEQ = [
+  [3,16,7,20,9,14,3], [9,3,18,5,14,3,10],
+  [14,20,5,16,3,18,8],[5,10,22,3,14,6,16],
+  [20,5,14,3,18,6,20],[6,18,3,12,20,3,14],
+  [11,3,16,6,12,3,11],[16,8,3,20,6,12,16],
+];
+// fire gradient colors for each bar (yellow→orange→red)
+const EQ_COLORS = ['#FFD700','#FFC200','#FFA500','#FF7700','#FF4400','#FF2200','#CC1100','#AA0F00'];
+
+function startEQ() {
+  stopEQ();
+  EQ_IDS.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.background = EQ_COLORS[i];
+    const seq = EQ_SEQ[i];
+    const tl  = gsap.timeline({ repeat: -1 });
+    seq.forEach(h => tl.to(el, { height: h, duration: 0.08 + Math.random() * 0.05, ease: 'none' }));
+    tl.timeScale(0.7 + Math.random() * 0.45);
+    eqTls.push(tl);
+  });
+}
+function stopEQ() {
+  eqTls.forEach(t => t.kill()); eqTls = [];
+  EQ_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.background = 'var(--fe)'; gsap.to(el, { height: 3, duration: 0.35 }); }
+  });
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// PROGRESS BAR
+// ═══════════════════════════════════════════════════════════════
+const BLOCKS = 42;
+const progTrack = document.getElementById('prog-track');
+
+(function initProg() {
+  for (let i = 0; i < BLOCKS; i++) {
+    const b = document.createElement('div');
+    b.className = 'prog-px'; b.id = 'pp' + i;
+    progTrack.appendChild(b);
+  }
+})();
+
+function setProg(pct) {
+  const filled = Math.round(pct * BLOCKS);
+  for (let i = 0; i < BLOCKS; i++) {
+    const el = document.getElementById('pp' + i);
+    if (!el) continue;
+    el.classList.remove('lit','lit-mid','lit-end');
+    if (i < filled) {
+      const ratio = i / BLOCKS;
+      if (ratio < 0.4) el.classList.add('lit');
+      else if (ratio < 0.75) el.classList.add('lit-mid');
+      else el.classList.add('lit-end');
     }
+  }
+}
 
-    function stopTick() { if (ticker) { clearInterval(ticker); ticker = null; } }
+function fmt(ms) {
+  const s = Math.floor((ms || 0) / 1000);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
 
-    // ── Render ────────────────────────────────────────────────────────────────
-    function render(data) {
-      if (data.error === 'not_authenticated') {
-        document.getElementById('auth-box').style.display = 'block';
-        document.getElementById('embed-section').style.display = 'none';
-        document.getElementById('led').className = 'led';
-        document.getElementById('slabel').className = 'status-label';
-        document.getElementById('slabel').textContent = 'NOT CONNECTED';
-        stopEQ(); stopTick();
-        return;
-      }
 
-      document.getElementById('auth-box').style.display = 'none';
-      document.getElementById('embed-section').style.display = 'block';
+// ═══════════════════════════════════════════════════════════════
+// MUSIC STATE
+// ═══════════════════════════════════════════════════════════════
+let _progress = 0, _duration = 0, _playing = false, _ticker = null;
 
-      isPlaying = data.isPlaying;
-      progress  = data.progress || 0;
-      duration  = data.duration || 0;
-
-      const card  = document.getElementById('card');
-      const led   = document.getElementById('led');
-      const label = document.getElementById('slabel');
-
-      if (isPlaying) {
-        card.classList.add('playing');
-        led.className = 'led on';
-        label.className = 'status-label on';
-        label.textContent = 'NOW PLAYING';
-        startEQ(); startTick();
-      } else {
-        card.classList.remove('playing');
-        led.className = 'led';
-        label.className = 'status-label';
-        label.textContent = data.title ? 'PAUSED' : 'NOTHING PLAYING';
-        stopEQ(); stopTick();
-      }
-
-      const titleEl  = document.getElementById('s-title');
-      const artistEl = document.getElementById('s-artist');
-      const newT = (data.title  || '---').toUpperCase();
-      const newA = (data.artist || '---').toUpperCase();
-
-      if (titleEl.textContent !== newT) {
-        gsap.to(titleEl, { opacity: 0, duration: 0.12, onComplete: () => {
-          titleEl.textContent = newT;
-          gsap.to(titleEl, { opacity: 1, duration: 0.15 });
-        }});
-      }
-      if (artistEl.textContent !== newA) {
-        gsap.to(artistEl, { opacity: 0, duration: 0.12, onComplete: () => {
-          artistEl.textContent = newA;
-          gsap.to(artistEl, { opacity: 1, duration: 0.15 });
-        }});
-      }
-
-      const img = document.getElementById('art-img');
-      const ph  = document.getElementById('art-ph');
-      if (data.albumArt) {
-        if (img.src !== data.albumArt) {
-          gsap.to(img, { opacity: 0, duration: 0.2, onComplete: () => {
-            img.src = data.albumArt;
-            img.style.display = 'block';
-            ph.style.display  = 'none';
-            gsap.to(img, { opacity: 1, duration: 0.25 });
-          }});
-        }
-      } else {
-        img.style.display = 'none';
-        ph.style.display  = 'flex';
-      }
-
-      const link = document.getElementById('s-link');
-      if (data.songUrl) { link.href = data.songUrl; link.style.display = 'inline-flex'; }
-      else link.style.display = 'none';
-
-      setProg(duration > 0 ? progress / duration : 0);
-      document.getElementById('t-cur').textContent = fmt(progress);
-      document.getElementById('t-dur').textContent = fmt(duration);
-
-      const origin = window.location.origin;
-      document.getElementById('embed-code').textContent =
-        `[![Now Playing](${origin}/api/now-playing/svg)](${origin})`;
+function startTick() {
+  stopTick();
+  _ticker = setInterval(() => {
+    if (_playing && _duration > 0) {
+      _progress = Math.min(_progress + 1000, _duration);
+      setProg(_progress / _duration);
+      document.getElementById('t-cur').textContent = fmt(_progress);
     }
+  }, 1000);
+}
+function stopTick() { clearInterval(_ticker); _ticker = null; }
 
-    function copyEmbed(el) {
-      navigator.clipboard.writeText(el.textContent).then(() => {
-        gsap.fromTo(el, { borderColor: '#e91e8c' }, { borderColor: '#3d2a50', duration: 1 });
-      });
-    }
+function applyTrack(data) {
+  _playing  = !!data.isPlaying;
+  _progress = data.progress || 0;
+  _duration = data.duration || 0;
 
-    // ── SSE ───────────────────────────────────────────────────────────────────
-    function connect() {
-      const es = new EventSource('/api/stream');
-      es.onmessage = e => { try { render(JSON.parse(e.data)); } catch {} };
-      es.onerror   = () => { es.close(); setTimeout(connect, 5000); };
-    }
-    connect();
-  </script>
+  /* status */
+  const leds = document.getElementById('fire-leds');
+  const lbl  = document.getElementById('slabel');
+  leds.classList.toggle('on', _playing);
+  lbl.classList.toggle('on', _playing || data.isTopTrack);
+  lbl.textContent = _playing ? 'NOW PLAYING' :
+    data.isTopTrack ? 'LAST PLAYED' : 'NOTHING PLAYING';
+
+  /* fire + eq */
+  if (window.setFirePlaying) window.setFirePlaying(_playing || !!data.isTopTrack);
+  if (_playing || data.isTopTrack) startEQ(); else stopEQ();
+
+  /* album art */
+  const aImg = document.getElementById('art-img');
+  const aPh  = document.getElementById('art-ph');
+  if (data.albumArt) {
+    aImg.src = data.albumArt; aImg.style.display = 'block';
+    aPh.style.display = 'none';
+  } else {
+    aImg.style.display = 'none'; aPh.style.display = 'flex';
+  }
+
+  /* track info */
+  document.getElementById('s-title').textContent  = (data.title  || '---').substring(0, 22);
+  document.getElementById('s-artist').textContent = (data.artist || '---').substring(0, 28);
+
+  const lnk = document.getElementById('s-link');
+  if (data.songUrl) { lnk.href = data.songUrl; lnk.style.display = 'inline-flex'; }
+  else { lnk.style.display = 'none'; }
+
+  /* progress */
+  setProg(_duration > 0 ? _progress / _duration : 0);
+  document.getElementById('t-cur').textContent = fmt(_progress);
+  document.getElementById('t-dur').textContent = fmt(_duration);
+
+  if (_playing) startTick(); else stopTick();
+
+  /* card glow */
+  gsap.to('.card-inner', {
+    boxShadow: _playing
+      ? '6px 6px 0 var(--fd), 0 0 60px rgba(255,102,0,0.3), inset 0 0 50px rgba(0,0,0,0.6)'
+      : '6px 6px 0 var(--fd), 0 0 50px rgba(255,102,0,0.08), inset 0 0 50px rgba(0,0,0,0.6)',
+    duration: 1.0,
+  });
+
+  /* embed */
+  const embSec  = document.getElementById('embed-sec');
+  const embCode = document.getElementById('embed-code');
+  if (embSec && embCode) {
+    embSec.style.display = 'block';
+    const url = window.location.origin;
+    embCode.textContent = `[![Now Playing](${url}/api/now-playing/svg)](${url})`;
+  }
+
+  /* hide not-cfg if data received */
+  document.getElementById('not-cfg').style.display = 'none';
+  document.getElementById('main-card').style.display = 'block';
+}
+
+function handleError(data) {
+  if (data.error === 'not_configured') {
+    document.getElementById('not-cfg').style.display = 'block';
+    document.getElementById('main-card').style.display = 'none';
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// SSE — live music stream
+// ═══════════════════════════════════════════════════════════════
+const es = new EventSource('/api/stream');
+es.onmessage = e => {
+  try {
+    const d = JSON.parse(e.data);
+    if (d.error) handleError(d);
+    else applyTrack(d);
+  } catch {}
+};
+
+
+// ═══════════════════════════════════════════════════════════════
+// EMBED COPY
+// ═══════════════════════════════════════════════════════════════
+function copyEmbed(el) {
+  navigator.clipboard?.writeText(el.textContent).then(() => {
+    const orig = el.textContent;
+    el.textContent = '[ COPIED! ]';
+    setTimeout(() => el.textContent = orig, 1500);
+  });
+}
+</script>
 </body>
 </html>
