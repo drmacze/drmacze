@@ -1,80 +1,119 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=18&duration=999999&pause=999999&color=FFFFFF&center=true&vCenter=true&width=480&height=70&lines=MUSTHAFA+DARMA" alt="Musthafa Darma"/>
+<!-- PIXEL ART HEADER — animated 3D isometric cubes + matrix rain + scanline -->
+<img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-header.svg" alt="Musthafa Darma" width="100%"/>
 
-<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=9&duration=999999&pause=999999&color=8b949e&center=true&vCenter=true&width=480&height=40&lines=FULL+STACK+DEVELOPER+%2F+AI+BUILDER" alt="Role"/>
+<!-- TYPING ANIMATION — Press Start 2P pixel font -->
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=11&duration=2800&pause=1200&color=22C55E&center=true&vCenter=true&width=600&height=44&lines=FULL+STACK+DEVELOPER;AI+%26+LLM+BUILDER;OPEN+SOURCE+CONTRIBUTOR;ALWAYS+LEARNING..." alt="typing"/>
 
 <br/>
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-21262d?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/darma-dev-9a906b416)
-[![Instagram](https://img.shields.io/badge/Instagram-21262d?style=flat-square&logo=instagram&logoColor=white)](https://www.instagram.com/drmacze)
-[![Portfolio](https://img.shields.io/badge/dlavie.vercel.app-21262d?style=flat-square&logo=vercel&logoColor=white)](https://dlavie.vercel.app)
-[![Email](https://img.shields.io/badge/Email-21262d?style=flat-square&logo=microsoft-outlook&logoColor=white)](mailto:darmamusthafa@outlook.co.id)
-[![Views](https://komarev.com/ghpvc/?username=drmacze&style=flat-square&color=21262d&label=views)](https://github.com/drmacze)
+<!-- SOCIAL LINKS — SVG icon badges, no emoji -->
+<a href="https://www.linkedin.com/in/darma-dev-9a906b416">
+  <img src="https://img.shields.io/badge/LINKEDIN-0A66C2?style=flat-square&logo=linkedin&logoColor=white&labelColor=0A66C2"/>
+</a>
+<a href="https://www.instagram.com/drmacze">
+  <img src="https://img.shields.io/badge/INSTAGRAM-E4405F?style=flat-square&logo=instagram&logoColor=white&labelColor=E4405F"/>
+</a>
+<a href="https://dlavie.vercel.app">
+  <img src="https://img.shields.io/badge/PORTFOLIO-000000?style=flat-square&logo=vercel&logoColor=white"/>
+</a>
+<a href="mailto:darmamusthafa@outlook.co.id">
+  <img src="https://img.shields.io/badge/EMAIL-0078D4?style=flat-square&logo=microsoft-outlook&logoColor=white"/>
+</a>
+
+<br/>
+<img src="https://komarev.com/ghpvc/?username=drmacze&style=flat-square&color=22c55e&label=PROFILE+VIEWS"/>
 
 </div>
 
-```
-████████████████████████████████████████████████████████████
-█  STACK                                                    █
-████████████████████████████████████████████████████████████
-```
+<img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-divider.svg" width="100%"/>
 
-![TypeScript](https://img.shields.io/badge/TypeScript-21262d?style=flat-square&logo=typescript&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-21262d?style=flat-square&logo=javascript&logoColor=white)
-![Python](https://img.shields.io/badge/Python-21262d?style=flat-square&logo=python&logoColor=white)
-![React](https://img.shields.io/badge/React-21262d?style=flat-square&logo=react&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js-21262d?style=flat-square&logo=nextdotjs&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-21262d?style=flat-square&logo=nodedotjs&logoColor=white)
-![Tailwind](https://img.shields.io/badge/Tailwind-21262d?style=flat-square&logo=tailwindcss&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-21262d?style=flat-square&logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-21262d?style=flat-square&logo=docker&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-21262d?style=flat-square&logo=ollama&logoColor=white)
-![HuggingFace](https://img.shields.io/badge/HuggingFace-21262d?style=flat-square&logo=huggingface&logoColor=white)
-
-```
-████████████████████████████████████████████████████████████
-█  STATS                                                    █
-████████████████████████████████████████████████████████████
-```
-
+<!-- STACK ─────────────────────────────────────────────────────────────── -->
 <div align="center">
 
-<img src="https://github-readme-stats.vercel.app/api?username=drmacze&show_icons=true&theme=github_dark&hide_border=true&bg_color=0d1117&title_color=c9d1d9&icon_color=8b949e&text_color=8b949e&count_private=true" height="155"/>
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=drmacze&layout=compact&theme=github_dark&hide_border=true&bg_color=0d1117&title_color=c9d1d9&text_color=8b949e&langs_count=6" height="155"/>
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=10&duration=99999&pause=99999&color=8B949E&center=true&vCenter=true&width=200&height=30&lines=%3E+STACK" alt="STACK"/>
 
 <br/>
 
-<img src="https://streak-stats.demolab.com/?user=drmacze&theme=github-dark-blue&hide_border=true&background=0d1117&ring=ffffff&fire=8b949e&currStreakLabel=c9d1d9&sideLabels=8b949e&dates=8b949e&stroke=21262d" height="145"/>
+<img src="https://skillicons.dev/icons?i=ts,js,python,react,nextjs,nodejs,tailwind,vite&theme=dark" alt="stack-1"/>
+
+<br/>
+
+<img src="https://skillicons.dev/icons?i=postgres,docker,linux,git,github,vercel,vscode&theme=dark" alt="stack-2"/>
+
+<br/>
+
+<img src="https://img.shields.io/badge/OLLAMA-000000?style=flat-square&logo=ollama&logoColor=white"/>
+<img src="https://img.shields.io/badge/HUGGINGFACE-FFD21E?style=flat-square&logo=huggingface&logoColor=black"/>
+<img src="https://img.shields.io/badge/PYTORCH-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"/>
+<img src="https://img.shields.io/badge/DRIZZLE-C5F74F?style=flat-square&logo=drizzle&logoColor=black"/>
+<img src="https://img.shields.io/badge/LORA_FINE--TUNING-8B5CF6?style=flat-square&logo=openai&logoColor=white"/>
 
 </div>
 
-```
-████████████████████████████████████████████████████████████
-█  CONTRIBUTION                                             █
-████████████████████████████████████████████████████████████
-```
+<img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-divider.svg" width="100%"/>
+
+<!-- STATS ─────────────────────────────────────────────────────────────── -->
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=10&duration=99999&pause=99999&color=8B949E&center=true&vCenter=true&width=200&height=30&lines=%3E+STATS" alt="STATS"/>
+
+<br/>
+
+<img src="https://github-readme-stats.vercel.app/api?username=drmacze&show_icons=true&theme=github_dark&hide_border=true&bg_color=0d1117&title_color=c9d1d9&icon_color=22c55e&text_color=8b949e&count_private=true" height="158"/>
+<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=drmacze&layout=compact&theme=github_dark&hide_border=true&bg_color=0d1117&title_color=c9d1d9&text_color=8b949e&langs_count=6" height="158"/>
+
+<br/>
+
+<img src="https://streak-stats.demolab.com/?user=drmacze&theme=github-dark-blue&hide_border=true&background=0d1117&ring=22c55e&fire=22c55e&currStreakLabel=c9d1d9&sideLabels=8b949e&dates=8b949e&stroke=21262d" height="148"/>
+
+</div>
+
+<img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-divider.svg" width="100%"/>
+
+<!-- CONTRIBUTION ──────────────────────────────────────────────────────── -->
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=10&duration=99999&pause=99999&color=8B949E&center=true&vCenter=true&width=280&height=30&lines=%3E+CONTRIBUTION" alt="CONTRIBUTION"/>
+
+</div>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/drmacze/drmacze/output/github-snake-dark.svg"/>
+  <source media="(prefers-color-scheme: dark)"  srcset="https://raw.githubusercontent.com/drmacze/drmacze/output/github-snake-dark.svg"/>
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/drmacze/drmacze/output/github-snake.svg"/>
   <img src="https://raw.githubusercontent.com/drmacze/drmacze/output/github-snake-dark.svg" alt="contribution snake" width="100%"/>
 </picture>
 
-```
-████████████████████████████████████████████████████████████
-█  PROJECTS                                                 █
-████████████████████████████████████████████████████████████
-```
+<img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-divider.svg" width="100%"/>
+
+<!-- PROJECTS ──────────────────────────────────────────────────────────── -->
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=10&duration=99999&pause=99999&color=8B949E&center=true&vCenter=true&width=220&height=30&lines=%3E+PROJECTS" alt="PROJECTS"/>
+
+</div>
 
 <!-- PINNED-PROJECTS:START -->
 | repo | lang | desc |
 |------|------|------|
-| [AISOURCE](https://github.com/drmacze/AISOURCE) | `TypeScript` | — |
-| [DLavie-OS-BOT](https://github.com/drmacze/DLavie-OS-BOT) | `JavaScript` | — |
+| [AISOURCE](https://github.com/drmacze/AISOURCE) | `TypeScript` | AI Command Center — local LLM, RAG, fine-tuning |
+| [DlavieOS](https://github.com/drmacze/DlavieOS) | `TypeScript` | DLavie OS — full AI workspace |
 | [dlaviecomerce](https://github.com/drmacze/dlaviecomerce) | `TypeScript` | Project |
-| [DLavie-AI-Open](https://github.com/drmacze/DLavie-AI-Open) | `TypeScript` | — |
-| [DLavie-Meta](https://github.com/drmacze/DLavie-Meta) | `TypeScript` | — |
+| [Darma-s-Portfolio](https://github.com/drmacze/Darma-s-Portfolio) | — | Portfolio site |
 <!-- PINNED-PROJECTS:END -->
+
+<img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-divider.svg" width="100%"/>
+
+<!-- NOW PLAYING ──────────────────────────────────────────────────────── -->
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=10&duration=99999&pause=99999&color=8B949E&center=true&vCenter=true&width=280&height=30&lines=%3E+NOW+PLAYING" alt="NOW PLAYING"/>
+
+<br/>
+
+[![Spotify](https://d4661186-1556-4435-ac74-6d0959812be3-00-186h0fk54isla.sisko.replit.dev/api/spotify/now-playing)](https://open.spotify.com)
+
+</div>
 
 <!-- stats-updated: 2026-06-11 -->
