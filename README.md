@@ -112,7 +112,7 @@
 
 <br/>
 
-[![Spotify Now Playing](https://dbe6369b-ba79-4fa6-a5b4-c59578374914-00-1v756m9nzs2xk.sisko.replit.dev/api/now-playing/svg)](https://dbe6369b-ba79-4fa6-a5b4-c59578374914-00-1v756m9nzs2xk.sisko.replit.dev)
+[![Spotify Now Playing](https://drmacze--drmacze5.replit.app/api/now-playing/svg)](https://drmacze--drmacze5.replit.app)
 
 </div>
 
