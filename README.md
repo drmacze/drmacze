@@ -110,8 +110,8 @@
 <!-- PINNED-PROJECTS:START -->
 | repo | lang | desc |
 |------|------|------|
-| [AI-Agent-3D](https://github.com/drmacze/AI-Agent-3D) | `TypeScript` | Agent DLavie OS 3D AI Assistant (Coming Soon) |
 | [AISOURCE](https://github.com/drmacze/AISOURCE) | `TypeScript` | — |
+| [AI-Agent-3D](https://github.com/drmacze/AI-Agent-3D) | `TypeScript` | Agent DLavie OS 3D AI Assistant (Coming Soon) |
 | [DLavie-OS-BOT](https://github.com/drmacze/DLavie-OS-BOT) | `JavaScript` | — |
 | [dlaviecomerce](https://github.com/drmacze/dlaviecomerce) | `TypeScript` | Project |
 | [DLavie-AI-Open](https://github.com/drmacze/DLavie-AI-Open) | `TypeScript` | — |
@@ -124,4 +124,4 @@
 <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=8&duration=99999&pause=99999&color=CC2200&center=true&vCenter=true&width=460&height=26&lines=DRMACZE+%2F%2F+FIRE+MODULE+%2F%2F+2026" alt="footer"/>
 </div>
 
-<!-- stats-updated: 2026-06-14 -->
+<!-- stats-updated: 2026-06-15 -->
