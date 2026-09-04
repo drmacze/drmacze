@@ -113,8 +113,8 @@
 | [DLavie-Launcher-Data](https://github.com/drmacze/DLavie-Launcher-Data) | `Python` | — |
 | [cyberxtrmx](https://github.com/drmacze/cyberxtrmx) | `JavaScript` | — |
 | [dlaviecomerce](https://github.com/drmacze/dlaviecomerce) | `TypeScript` | Project |
-| [DLavie-Craft](https://github.com/drmacze/DLavie-Craft) | `HTML` | — |
-| [DLavieRayTraced](https://github.com/drmacze/DLavieRayTraced) | `Python` | — |
+| [F16-Launcher](https://github.com/drmacze/F16-Launcher) | `Kotlin` | — |
+| [dlavie-web](https://github.com/drmacze/dlavie-web) | `HTML` | DLavie Website — Portal, FAQ, Issues, Terms, Privacy |
 <!-- PINNED-PROJECTS:END -->
 
 <img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-divider.svg" width="100%"/>
@@ -124,4 +124,4 @@
 <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=8&duration=99999&pause=99999&color=CC2200&center=true&vCenter=true&width=460&height=26&lines=DRMACZE+%2F%2F+FIRE+MODULE+%2F%2F+2026" alt="footer"/>
 </div>
 
-<!-- stats-updated: 2026-09-03 -->
+<!-- stats-updated: 2026-09-04 -->
