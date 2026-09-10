@@ -111,10 +111,10 @@
 | repo | lang | desc |
 |------|------|------|
 | [DLavie-Launcher-Data](https://github.com/drmacze/DLavie-Launcher-Data) | `Python` | — |
+| [F16-Launcher](https://github.com/drmacze/F16-Launcher) | `Kotlin` | — |
+| [DIRECTIVE-I](https://github.com/drmacze/DIRECTIVE-I) | `JavaScript` | — |
 | [AG2DESITE](https://github.com/drmacze/AG2DESITE) | `JavaScript` | — |
 | [AG2DEFINITIVE-EDITION](https://github.com/drmacze/AG2DEFINITIVE-EDITION) | — | — |
-| [DLavie-Heist](https://github.com/drmacze/DLavie-Heist) | — | — |
-| [DLavie-Craft](https://github.com/drmacze/DLavie-Craft) | `CSS` | — |
 <!-- PINNED-PROJECTS:END -->
 
 <img src="https://raw.githubusercontent.com/drmacze/drmacze/main/pixel-divider.svg" width="100%"/>
@@ -124,4 +124,4 @@
 <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&size=8&duration=99999&pause=99999&color=CC2200&center=true&vCenter=true&width=460&height=26&lines=DRMACZE+%2F%2F+FIRE+MODULE+%2F%2F+2026" alt="footer"/>
 </div>
 
-<!-- stats-updated: 2026-09-09 -->
+<!-- stats-updated: 2026-09-10 -->
